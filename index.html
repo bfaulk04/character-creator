@@ -1,0 +1,399 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Download, Move, Palette, X } from 'lucide-react';
+
+const CharacterCreator = () => {
+  const [currentStep, setCurrentStep] = useState('body-selection'); // 'body-selection' or 'editor'
+  const [selectedComponents, setSelectedComponents] = useState({
+    body: null,
+    eyes: null,
+    mouth: null,
+    head: null,
+    accessory: null
+  });
+  
+  const [componentPositions, setComponentPositions] = useState({
+    body: { x: 0, y: 0 },
+    eyes: { x: 0, y: 0 },
+    mouth: { x: 0, y: 0 },
+    head: { x: 0, y: 0 },
+    accessory: { x: 0, y: 0 }
+  });
+  
+  const [bodyColor, setBodyColor] = useState('#87CEEB');
+  const [headColor, setHeadColor] = useState('#FF69B4');
+  const [selectedForMoving, setSelectedForMoving] = useState(null);
+  const [showColorPicker, setShowColorPicker] = useState(null);
+  
+  const previewRef = useRef(null);
+  
+  // Mock data with visual representations
+  const mockComponents = {
+    body: [
+      { id: 1, name: 'inline-1.svg', emoji: '🐻', color: '#87CEEB' },
+      { id: 2, name: 'inline-2.svg', emoji: '🤖', color: '#FFD700' },
+      { id: 3, name: 'inline-3.svg', emoji: '👽', color: '#98FB98' },
+      { id: 4, name: 'inline-4.svg', emoji: '🐸', color: '#90EE90' },
+      { id: 5, name: 'inline-5.svg', emoji: '🐧', color: '#ADD8E6' }
+    ],
+    eyes: [
+      { id: 0, name: 'none', visual: '' },
+      { id: 1, name: 'inline-1.svg', visual: '👀' },
+      { id: 2, name: 'inline-2.svg', visual: '• •' },
+      { id: 3, name: 'inline-3.svg', visual: '⊙ ⊙' },
+      { id: 4, name: 'inline-4.svg', visual: '◉ ◉' },
+      { id: 5, name: 'inline-5.svg', visual: '◐ ◑' }
+    ],
+    mouth: [
+      { id: 0, name: 'none', visual: '' },
+      { id: 1, name: 'inline-1.svg', visual: '▼' },
+      { id: 2, name: 'inline-2.svg', visual: '●' },
+      { id: 3, name: 'inline-3.svg', visual: '—' },
+      { id: 4, name: 'inline-4.svg', visual: '═' },
+      { id: 5, name: 'inline-5.svg', visual: '◡' }
+    ],
+    head: [
+      { id: 0, name: 'none', visual: '' },
+      { id: 1, name: 'inline-1.svg', visual: '🎩' },
+      { id: 2, name: 'inline-2.svg', visual: '🎧' },
+      { id: 3, name: 'inline-3.svg', visual: '👒' },
+      { id: 4, name: 'inline-4.svg', visual: '🧢' },
+      { id: 5, name: 'inline-5.svg', visual: '👑' }
+    ],
+    accessory: [
+      { id: 0, name: 'none', visual: '' },
+      { id: 1, name: 'inline-1.svg', visual: '🎀' },
+      { id: 2, name: 'inline-2.svg', visual: '👔' },
+      { id: 3, name: 'inline-3.svg', visual: '📿' },
+      { id: 4, name: 'inline-4.svg', visual: '🦺' },
+      { id: 5, name: 'inline-5.svg', visual: '🎗️' }
+    ]
+  };
+
+  const selectBody = (body) => {
+    setSelectedComponents(prev => ({ ...prev, body }));
+    setBodyColor(body.color);
+    setCurrentStep('editor');
+  };
+
+  const selectComponent = (category, component) => {
+    setSelectedComponents(prev => ({
+      ...prev,
+      [category]: component
+    }));
+  };
+
+  const removeComponent = (category) => {
+    if (category === 'body') return; // Can't remove body
+    setSelectedComponents(prev => ({
+      ...prev,
+      [category]: null
+    }));
+    setSelectedForMoving(null);
+  };
+
+  const moveComponent = (category, direction) => {
+    const moveDistance = 5;
+    setComponentPositions(prev => {
+      const current = prev[category];
+      let newX = current.x;
+      let newY = current.y;
+      
+      switch(direction) {
+        case 'up': newY = Math.max(current.y - moveDistance, -150); break;
+        case 'down': newY = Math.min(current.y + moveDistance, 150); break;
+        case 'left': newX = Math.max(current.x - moveDistance, -150); break;
+        case 'right': newX = Math.min(current.x + moveDistance, 150); break;
+        default: break;
+      }
+      
+      return {
+        ...prev,
+        [category]: { x: newX, y: newY }
+      };
+    });
+  };
+
+  const exportToPDF = () => {
+    if (!selectedComponents.body) {
+      alert('Please select a body component before exporting');
+      return;
+    }
+    
+    // Create a canvas to render the character
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size for 8.5x11" at 300 DPI with safe margins
+    const dpi = 300;
+    const pageWidth = 8.5 * dpi;
+    const pageHeight = 11 * dpi;
+    
+    canvas.width = pageWidth;
+    canvas.height = pageHeight;
+    
+    // White background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, pageWidth, pageHeight);
+    
+    // Center the character
+    const centerX = pageWidth / 2;
+    const centerY = pageHeight / 2;
+    
+    // For now, show a placeholder - in real implementation, render SVGs
+    ctx.fillStyle = '#333';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Character Export', centerX, centerY - 50);
+    ctx.fillText('(SVG rendering would go here)', centerX, centerY);
+    
+    // Convert to blob and download
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'character.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  // Body Selection Screen
+  if (currentStep === 'body-selection') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="bg-white rounded-lg border-2 border-gray-300 p-8 max-w-2xl w-full">
+          <h1 className="text-2xl font-bold text-center mb-8 text-gray-800">Choose Your Character Body</h1>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {mockComponents.body.map(body => (
+              <button
+                key={body.id}
+                onClick={() => selectBody(body)}
+                className="aspect-square border-2 border-gray-300 rounded-lg hover:border-blue-500 transition-all p-4 flex flex-col items-center justify-center gap-2 hover:bg-blue-50"
+              >
+                <div className="text-4xl">{body.emoji}</div>
+                <div 
+                  className="w-8 h-8 rounded-full border-2 border-gray-300"
+                  style={{ backgroundColor: body.color }}
+                ></div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const ComponentSelector = ({ category, title }) => {
+    const components = mockComponents[category];
+    
+    return (
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-medium text-gray-700">{title}</h3>
+          {(category === 'body' || category === 'head') && selectedComponents[category] && (
+            <button
+              onClick={() => setShowColorPicker(showColorPicker === category ? null : category)}
+              className="p-1 text-gray-500 hover:text-gray-700"
+            >
+              <Palette size={16} />
+            </button>
+          )}
+        </div>
+        
+        {showColorPicker === category && (
+          <div className="mb-2 p-2 bg-gray-50 rounded">
+            <input
+              type="color"
+              value={category === 'body' ? bodyColor : headColor}
+              onChange={(e) => category === 'body' ? setBodyColor(e.target.value) : setHeadColor(e.target.value)}
+              className="w-full h-8 rounded border"
+            />
+          </div>
+        )}
+        
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {components.map(component => (
+            <button
+              key={component.id}
+              onClick={() => selectComponent(category, component)}
+              className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center text-lg transition-all ${
+                selectedComponents[category]?.id === component.id
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 bg-white hover:border-gray-400'
+              }`}
+            >
+              {component.visual || component.emoji || (component.id === 0 ? '∅' : '?')}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const MovementOverlay = ({ category, component }) => {
+    if (selectedForMoving !== category) return null;
+    
+    return (
+      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-2 shadow-lg z-50">
+        <div className="flex items-center gap-1 mb-2">
+          <span className="text-xs font-medium text-yellow-800">Move {category}</span>
+          <button
+            onClick={() => removeComponent(category)}
+            className="ml-2 p-1 text-red-500 hover:text-red-700"
+          >
+            <X size={12} />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          <div></div>
+          <button
+            onClick={() => moveComponent(category, 'up')}
+            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+          >
+            ↑
+          </button>
+          <div></div>
+          <button
+            onClick={() => moveComponent(category, 'left')}
+            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => setSelectedForMoving(null)}
+            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+          >
+            ✓
+          </button>
+          <button
+            onClick={() => moveComponent(category, 'right')}
+            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+          >
+            →
+          </button>
+          <div></div>
+          <button
+            onClick={() => moveComponent(category, 'down')}
+            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+          >
+            ↓
+          </button>
+          <div></div>
+        </div>
+      </div>
+    );
+  };
+
+  const CharacterPreview = () => {
+    const renderLayer = (category, zIndex) => {
+      const component = selectedComponents[category];
+      if (!component || component.id === 0) return null;
+      
+      const position = componentPositions[category];
+      const color = category === 'body' ? bodyColor : category === 'head' ? headColor : undefined;
+      
+      return (
+        <div
+          key={category}
+          className="absolute cursor-pointer relative"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px)`,
+            zIndex: zIndex
+          }}
+          onClick={() => setSelectedForMoving(selectedForMoving === category ? null : category)}
+        >
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl shadow-lg border-2 transition-all ${
+              selectedForMoving === category ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-white'
+            }`}
+            style={color ? { backgroundColor: color, color: 'white' } : {}}
+          >
+            {component.visual || component.emoji}
+          </div>
+          <MovementOverlay category={category} component={component} />
+        </div>
+      );
+    };
+
+    return (
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+        {/* Render layers in stacking order */}
+        {renderLayer('body', 1)}
+        {renderLayer('eyes', 2)}
+        {renderLayer('mouth', 3)}
+        {renderLayer('head', 4)}
+        {renderLayer('accessory', 5)}
+        
+        {!selectedComponents.body && (
+          <div className="text-gray-400 text-center">
+            <div className="text-6xl mb-2">👤</div>
+            <div>Select a body to start</div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100 p-4">
+      {/* Left Panel - Preview */}
+      <div className="flex-1 mr-4">
+        <div className="bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium flex items-center gap-2">
+              <span className="text-gray-400">🎨</span>
+              Body
+            </h2>
+            <button
+              onClick={() => setCurrentStep('body-selection')}
+              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+            >
+              Change Body
+            </button>
+          </div>
+          
+          <div 
+            ref={previewRef}
+            className="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative"
+          >
+            <CharacterPreview />
+          </div>
+          
+          {selectedForMoving && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+              <p className="text-sm text-yellow-800">
+                Click on the <strong>{selectedForMoving}</strong> component above to move it, or click elsewhere to deselect.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Right Panel - Components */}
+      <div className="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col">
+        <div className="flex-1 overflow-y-auto">
+          <ComponentSelector category="eyes" title="Eyes" />
+          <ComponentSelector category="mouth" title="Mouth" />
+          <ComponentSelector category="head" title="Head" />
+          <ComponentSelector category="accessory" title="Accessory" />
+        </div>
+        
+        <button
+          onClick={exportToPDF}
+          disabled={!selectedComponents.body}
+          className={`w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 ${
+            selectedComponents.body
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          <Download size={18} />
+          Export
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default CharacterCreator;
