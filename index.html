@@ -4,15 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Creator</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom scrollbar for component selectors */
         .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -20,497 +13,355 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+        .character-layer {
+            position: absolute;
+            width: 272px;
+            height: 406px;
+        }
     </style>
 </head>
-<body class="m-0 p-0">
-    <div id="root"></div>
+<body class="m-0 p-0 bg-gray-100">
+    <!-- Test message to confirm page loads -->
+    <div id="loading" class="fixed top-4 right-4 bg-blue-500 text-white p-2 rounded">
+        Loading Character Creator...
+    </div>
 
-    <script type="text/babel">
-        const { useState, useRef, useEffect } = React;
-        const { Download, X } = lucide;
+    <div class="flex h-screen bg-gray-100 p-4">
+        <!-- Left Panel - Preview -->
+        <div class="flex-1 mr-4">
+            <div class="bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col">
+                <div class="flex items-center justify-between mb-4 relative">
+                    <button 
+                        id="bodyBtn"
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
+                    >
+                        <span class="text-gray-400">🎨</span>
+                        Body
+                    </button>
+                    
+                    <!-- Body Selector Popup -->
+                    <div id="bodySelector" class="absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium text-yellow-800">Select Body</span>
+                            <button id="closeBodybody" class="p-1 text-gray-500 hover:text-gray-700">✕</button>
+                        </div>
+                        <div id="bodyGrid" class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                            <!-- Body options will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden flex items-center justify-center">
+                    <!-- Character Preview Container -->
+                    <div id="characterPreview" class="relative">
+                        <!-- Default placeholder -->
+                        <div id="placeholder" class="text-gray-400 text-center">
+                            <div class="w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                                <div class="text-6xl mb-4">👤</div>
+                                <div class="text-lg font-medium mb-2">Blank Slate</div>
+                                <div class="text-sm">Click "Body" to start building</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Character layers -->
+                        <img id="bodyLayer" class="character-layer hidden" style="z-index: 0;">
+                        <img id="mouthLayer" class="character-layer hidden" style="z-index: 1;">
+                        <img id="eyesLayer" class="character-layer hidden" style="z-index: 2;">
+                        <img id="headLayer" class="character-layer hidden" style="z-index: 3;">
+                        <img id="accessoryLayer" class="character-layer hidden" style="z-index: 4;">
+                    </div>
+                    
+                    <!-- Movement Overlay -->
+                    <div id="movementOverlay" class="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50 hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span id="movingLabel" class="text-xs font-medium text-yellow-800">Component</span>
+                            <button id="removeBtn" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1">
+                            <div></div>
+                            <button id="moveUp" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                            <div></div>
+                            <button id="moveLeft" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                            <button id="moveDone" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                            <button id="moveRight" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                            <div></div>
+                            <button id="moveDown" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel - Components -->
+        <div class="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col">
+            <div class="flex-1 overflow-y-auto">
+                <!-- Head Components -->
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2">Head</h3>
+                    <div id="headSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Eyes Components -->
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2">Eyes</h3>
+                    <div id="eyesSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Mouth Components -->
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2">Mouth</h3>
+                    <div id="mouthSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Accessory Components -->
+                <div class="mb-4">
+                    <h3 class="font-medium text-gray-700 mb-2">Accessory</h3>
+                    <div id="accessorySelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <button 
+                id="exportBtn"
+                disabled
+                class="w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed"
+            >
+                📥 Export
+            </button>
+        </div>
+    </div>
 
-        const CharacterCreator = () => {
-            const [selectedComponents, setSelectedComponents] = useState({
+    <script>
+        // Simple JavaScript implementation
+        const state = {
+            selectedComponents: {
                 body: null,
                 mouth: null,
                 eyes: null,
                 head: null,
                 accessory: null
-            });
-            
-            const [componentPositions, setComponentPositions] = useState({
+            },
+            positions: {
                 body: { x: 0, y: 0 },
                 mouth: { x: 0, y: 0 },
                 eyes: { x: 0, y: 0 },
                 head: { x: 0, y: 0 },
                 accessory: { x: 0, y: 0 }
-            });
-            
-            const [selectedForMoving, setSelectedForMoving] = useState(null);
-            const [showBodySelector, setShowBodySelector] = useState(false);
-            
-            const previewRef = useRef(null);
-            
-            // Component counts - adjust these based on your actual assets
-            const componentCounts = {
-                body: 8,
-                mouth: 5, 
-                eyes: 5,
-                head: 5,
-                accessory: 5
-            };
-            
-            // Generate component lists based on counts
-            const generateComponents = (category, count) => {
-                const components = [{ id: 0, name: 'none', path: null }];
-                for (let i = 1; i <= count; i++) {
-                    components.push({
-                        id: i,
-                        name: `${category}-${i}.png`,
-                        path: `./assets/${category}/${category}-${i}.png`
-                    });
-                }
-                return components;
-            };
-            
-            const mockComponents = {
-                body: generateComponents('body', componentCounts.body),
-                mouth: generateComponents('mouth', componentCounts.mouth),
-                eyes: generateComponents('eyes', componentCounts.eyes),
-                head: generateComponents('head', componentCounts.head),
-                accessory: generateComponents('accessory', componentCounts.accessory)
-            };
-
-            const selectComponent = (category, component) => {
-                setSelectedComponents(prev => ({
-                    ...prev,
-                    [category]: component
-                }));
-                
-                // Hide movement overlay when selecting a new component in same category
-                if (selectedForMoving === category) {
-                    setSelectedForMoving(null);
-                }
-                
-                // Hide body selector when body is chosen
-                if (category === 'body') {
-                    setShowBodySelector(false);
-                }
-            };
-
-            const removeComponent = (category) => {
-                if (category === 'body') return; // Can't remove body
-                setSelectedComponents(prev => ({
-                    ...prev,
-                    [category]: null
-                }));
-                setSelectedForMoving(null);
-            };
-
-            const moveComponent = (category, direction) => {
-                const moveDistance = 5;
-                setComponentPositions(prev => {
-                    const current = prev[category];
-                    let newX = current.x;
-                    let newY = current.y;
-                    
-                    // Calculate bounds based on 272x406 character area + padding
-                    const maxX = 100;
-                    const maxY = 150;
-                    
-                    switch(direction) {
-                        case 'up': newY = Math.max(current.y - moveDistance, -maxY); break;
-                        case 'down': newY = Math.min(current.y + moveDistance, maxY); break;
-                        case 'left': newX = Math.max(current.x - moveDistance, -maxX); break;
-                        case 'right': newX = Math.min(current.x + moveDistance, maxX); break;
-                        default: break;
-                    }
-                    
-                    return {
-                        ...prev,
-                        [category]: { x: newX, y: newY }
-                    };
-                });
-            };
-
-            const exportToPDF = async () => {
-                if (!selectedComponents.body) {
-                    alert('Please select a body component before exporting');
-                    return;
-                }
-                
-                try {
-                    // Create a temporary container for the character
-                    const tempContainer = document.createElement('div');
-                    tempContainer.style.position = 'absolute';
-                    tempContainer.style.top = '-9999px';
-                    tempContainer.style.width = '272px';
-                    tempContainer.style.height = '406px';
-                    tempContainer.style.backgroundColor = 'transparent';
-                    document.body.appendChild(tempContainer);
-                    
-                    // Add character layers to temp container
-                    const layers = ['body', 'mouth', 'eyes', 'head', 'accessory'];
-                    for (let i = 0; i < layers.length; i++) {
-                        const category = layers[i];
-                        const component = selectedComponents[category];
-                        if (component && component.id !== 0) {
-                            const img = document.createElement('img');
-                            img.src = component.path;
-                            img.style.position = 'absolute';
-                            img.style.width = '272px';
-                            img.style.height = '406px';
-                            img.style.zIndex = i;
-                            const position = componentPositions[category];
-                            img.style.transform = `translate(${position.x}px, ${position.y}px)`;
-                            tempContainer.appendChild(img);
-                        }
-                    }
-                    
-                    // Wait for images to load
-                    const images = tempContainer.querySelectorAll('img');
-                    await Promise.all(Array.from(images).map(img => {
-                        return new Promise((resolve) => {
-                            if (img.complete) {
-                                resolve();
-                            } else {
-                                img.onload = resolve;
-                                img.onerror = resolve;
-                            }
-                        });
-                    }));
-                    
-                    // Capture with html2canvas
-                    const canvas = await html2canvas(tempContainer, {
-                        backgroundColor: null,
-                        scale: 2
-                    });
-                    
-                    // Create PDF
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'in',
-                        format: [8.5, 11]
-                    });
-                    
-                    // Add character to center of page
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgWidth = 272 / 96; // Convert px to inches (96 DPI)
-                    const imgHeight = 406 / 96;
-                    const x = (8.5 - imgWidth) / 2;
-                    const y = (11 - imgHeight) / 2;
-                    
-                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-                    pdf.save('character.pdf');
-                    
-                    // Clean up
-                    document.body.removeChild(tempContainer);
-                    
-                } catch (error) {
-                    console.error('Export failed:', error);
-                    alert('Export failed. Please try again.');
-                }
-            };
-
-            const ComponentThumbnail = ({ component, isSelected, onClick, category }) => {
-                if (component.id === 0) {
-                    // None option
-                    return React.createElement('button', {
-                        onClick: onClick,
-                        className: `flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center transition-all ${
-                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-                        }`
-                    }, React.createElement('span', {
-                        className: 'text-gray-400 text-lg'
-                    }, '∅'));
-                }
-                
-                // Use icon-X.png for body, regular assets for other components
-                const thumbnailPath = category === 'body' 
-                    ? `./assets/icon/icon-${component.id}.png`
-                    : component.path;
-                
-                return React.createElement('button', {
-                    onClick: onClick,
-                    className: `flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
-                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-                    }`
-                }, [
-                    React.createElement('img', {
-                        key: 'img',
-                        src: thumbnailPath,
-                        alt: component.name,
-                        className: 'w-full h-full object-contain',
-                        onError: (e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                        }
-                    }),
-                    React.createElement('div', {
-                        key: 'fallback',
-                        className: 'w-full h-full flex items-center justify-center text-xs text-gray-400',
-                        style: { display: 'none' }
-                    }, component.name)
-                ]);
-            };
-
-            const ComponentSelector = ({ category, title }) => {
-                const components = mockComponents[category];
-                
-                return React.createElement('div', { className: 'mb-4' }, [
-                    React.createElement('h3', {
-                        key: 'title',
-                        className: 'font-medium text-gray-700 mb-2'
-                    }, title),
-                    React.createElement('div', {
-                        key: 'selector',
-                        className: 'flex gap-2 overflow-x-auto pb-2 scrollbar-hide'
-                    }, components.map(component => 
-                        React.createElement(ComponentThumbnail, {
-                            key: component.id,
-                            component: component,
-                            category: category,
-                            isSelected: selectedComponents[category]?.id === component.id,
-                            onClick: () => selectComponent(category, component)
-                        })
-                    ))
-                ]);
-            };
-
-            const MovementOverlay = ({ category }) => {
-                if (selectedForMoving !== category) return null;
-                
-                return React.createElement('div', {
-                    className: 'absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50'
-                }, [
-                    React.createElement('div', {
-                        key: 'header',
-                        className: 'flex items-center justify-between mb-2'
-                    }, [
-                        React.createElement('span', {
-                            key: 'label',
-                            className: 'text-xs font-medium text-yellow-800 capitalize'
-                        }, category),
-                        React.createElement('button', {
-                            key: 'remove',
-                            onClick: () => removeComponent(category),
-                            className: 'p-1 text-red-500 hover:text-red-700'
-                        }, React.createElement(X, { size: 12 }))
-                    ]),
-                    React.createElement('div', {
-                        key: 'controls',
-                        className: 'grid grid-cols-3 gap-1'
-                    }, [
-                        React.createElement('div', { key: 'tl' }),
-                        React.createElement('button', {
-                            key: 'up',
-                            onClick: () => moveComponent(category, 'up'),
-                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
-                        }, '▲'),
-                        React.createElement('div', { key: 'tr' }),
-                        React.createElement('button', {
-                            key: 'left',
-                            onClick: () => moveComponent(category, 'left'),
-                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
-                        }, '◀'),
-                        React.createElement('button', {
-                            key: 'done',
-                            onClick: () => setSelectedForMoving(null),
-                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium'
-                        }, '✓'),
-                        React.createElement('button', {
-                            key: 'right',
-                            onClick: () => moveComponent(category, 'right'),
-                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
-                        }, '▶'),
-                        React.createElement('div', { key: 'bl' }),
-                        React.createElement('button', {
-                            key: 'down',
-                            onClick: () => moveComponent(category, 'down'),
-                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
-                        }, '▼'),
-                        React.createElement('div', { key: 'br' })
-                    ])
-                ]);
-            };
-
-            const BodySelector = () => {
-                if (!showBodySelector) return null;
-                
-                return React.createElement('div', {
-                    className: 'absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md'
-                }, [
-                    React.createElement('div', {
-                        key: 'header',
-                        className: 'flex items-center justify-between mb-3'
-                    }, [
-                        React.createElement('span', {
-                            key: 'title',
-                            className: 'font-medium text-yellow-800'
-                        }, 'Select Body'),
-                        React.createElement('button', {
-                            key: 'close',
-                            onClick: () => setShowBodySelector(false),
-                            className: 'p-1 text-gray-500 hover:text-gray-700'
-                        }, React.createElement(X, { size: 16 }))
-                    ]),
-                    React.createElement('div', {
-                        key: 'grid',
-                        className: 'grid grid-cols-4 gap-2 max-h-64 overflow-y-auto'
-                    }, mockComponents.body.slice(1).map(body =>
-                        React.createElement(ComponentThumbnail, {
-                            key: body.id,
-                            component: body,
-                            category: 'body',
-                            isSelected: selectedComponents.body?.id === body.id,
-                            onClick: () => selectComponent('body', body)
-                        })
-                    ))
-                ]);
-            };
-
-            const CharacterLayer = ({ category, zIndex }) => {
-                const component = selectedComponents[category];
-                if (!component || component.id === 0) return null;
-                
-                const position = componentPositions[category];
-                
-                return React.createElement('div', {
-                    className: 'absolute cursor-pointer',
-                    style: {
-                        transform: `translate(${position.x}px, ${position.y}px)`,
-                        zIndex: zIndex
-                    },
-                    onClick: () => setSelectedForMoving(selectedForMoving === category ? null : category)
-                }, React.createElement('div', {
-                    className: 'relative'
-                }, [
-                    React.createElement('img', {
-                        key: 'img',
-                        src: component.path,
-                        alt: component.name,
-                        className: `max-w-none transition-all ${
-                            selectedForMoving === category ? 'ring-2 ring-yellow-400' : ''
-                        }`,
-                        style: { width: '272px', height: '406px' },
-                        onError: (e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                        }
-                    }),
-                    React.createElement('div', {
-                        key: 'fallback',
-                        className: 'flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 text-gray-500 text-sm',
-                        style: { width: '272px', height: '406px', display: 'none' }
-                    }, component.name),
-                    React.createElement(MovementOverlay, {
-                        key: 'overlay',
-                        category: category
-                    })
-                ]));
-            };
-
-            const CharacterPreview = () => {
-                return React.createElement('div', {
-                    className: 'relative w-full h-full flex items-center justify-center overflow-hidden'
-                }, [
-                    // Character layers in z-index order
-                    React.createElement(CharacterLayer, { key: 'body', category: 'body', zIndex: 0 }),
-                    React.createElement(CharacterLayer, { key: 'mouth', category: 'mouth', zIndex: 1 }),
-                    React.createElement(CharacterLayer, { key: 'eyes', category: 'eyes', zIndex: 2 }),
-                    React.createElement(CharacterLayer, { key: 'head', category: 'head', zIndex: 3 }),
-                    React.createElement(CharacterLayer, { key: 'accessory', category: 'accessory', zIndex: 4 }),
-                    
-                    !selectedComponents.body && React.createElement('div', {
-                        key: 'placeholder',
-                        className: 'text-gray-400 text-center'
-                    }, React.createElement('div', {
-                        className: 'w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center'
-                    }, [
-                        React.createElement('div', {
-                            key: 'icon',
-                            className: 'text-6xl mb-4'
-                        }, '👤'),
-                        React.createElement('div', {
-                            key: 'title',
-                            className: 'text-lg font-medium mb-2'
-                        }, 'Blank Slate'),
-                        React.createElement('div', {
-                            key: 'subtitle',
-                            className: 'text-sm'
-                        }, 'Click "Body" to start building')
-                    ]))
-                ]);
-            };
-
-            return React.createElement('div', {
-                className: 'flex h-screen bg-gray-100 p-4'
-            }, [
-                // Left Panel - Preview
-                React.createElement('div', {
-                    key: 'left-panel',
-                    className: 'flex-1 mr-4'
-                }, React.createElement('div', {
-                    className: 'bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col'
-                }, [
-                    React.createElement('div', {
-                        key: 'header',
-                        className: 'flex items-center justify-between mb-4 relative'
-                    }, [
-                        React.createElement('button', {
-                            key: 'body-btn',
-                            onClick: () => setShowBodySelector(!showBodySelector),
-                            className: 'px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2'
-                        }, [
-                            React.createElement('span', {
-                                key: 'icon',
-                                className: 'text-gray-400'
-                            }, '🎨'),
-                            'Body'
-                        ]),
-                        React.createElement(BodySelector, { key: 'body-selector' })
-                    ]),
-                    React.createElement('div', {
-                        key: 'preview',
-                        ref: previewRef,
-                        className: 'flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden'
-                    }, React.createElement(CharacterPreview))
-                ])),
-                
-                // Right Panel - Components
-                React.createElement('div', {
-                    key: 'right-panel',
-                    className: 'w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col'
-                }, [
-                    React.createElement('div', {
-                        key: 'selectors',
-                        className: 'flex-1 overflow-y-auto'
-                    }, [
-                        React.createElement(ComponentSelector, { key: 'head', category: 'head', title: 'Head' }),
-                        React.createElement(ComponentSelector, { key: 'eyes', category: 'eyes', title: 'Eyes' }),
-                        React.createElement(ComponentSelector, { key: 'mouth', category: 'mouth', title: 'Mouth' }),
-                        React.createElement(ComponentSelector, { key: 'accessory', category: 'accessory', title: 'Accessory' })
-                    ]),
-                    React.createElement('button', {
-                        key: 'export',
-                        onClick: exportToPDF,
-                        disabled: !selectedComponents.body,
-                        className: `w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 ${
-                            selectedComponents.body
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`
-                    }, [
-                        React.createElement(Download, { key: 'icon', size: 18 }),
-                        'Export'
-                    ])
-                ])
-            ]);
+            },
+            selectedForMoving: null
         };
 
-        // Render the app
-        ReactDOM.render(React.createElement(CharacterCreator), document.getElementById('root'));
+        // Component counts
+        const componentCounts = {
+            body: 8,
+            mouth: 5,
+            eyes: 5,
+            head: 5,
+            accessory: 5
+        };
+
+        // Hide loading message
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+        }, 1000);
+
+        // Generate component thumbnail
+        function createThumbnail(category, id, isSelected = false) {
+            const button = document.createElement('button');
+            button.className = `flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
+                isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
+            }`;
+
+            if (id === 0) {
+                button.innerHTML = '<span class="text-gray-400 text-lg flex items-center justify-center h-full">∅</span>';
+            } else {
+                const img = document.createElement('img');
+                const thumbnailPath = category === 'body' 
+                    ? `./assets/icon/icon-${id}.png`
+                    : `./assets/${category}/${category}-${id}.png`;
+                
+                img.src = thumbnailPath;
+                img.alt = `${category}-${id}`;
+                img.className = 'w-full h-full object-contain';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    button.innerHTML = `<div class="flex items-center justify-center h-full text-xs text-gray-400">${category}-${id}</div>`;
+                };
+                button.appendChild(img);
+            }
+
+            button.onclick = () => selectComponent(category, id);
+            return button;
+        }
+
+        // Populate component selectors
+        function populateSelectors() {
+            ['head', 'eyes', 'mouth', 'accessory'].forEach(category => {
+                const container = document.getElementById(category + 'Selector');
+                container.innerHTML = '';
+                
+                // Add "none" option
+                container.appendChild(createThumbnail(category, 0));
+                
+                // Add numbered options
+                for (let i = 1; i <= componentCounts[category]; i++) {
+                    container.appendChild(createThumbnail(category, i));
+                }
+            });
+
+            // Populate body selector
+            const bodyGrid = document.getElementById('bodyGrid');
+            bodyGrid.innerHTML = '';
+            for (let i = 1; i <= componentCounts.body; i++) {
+                bodyGrid.appendChild(createThumbnail('body', i));
+            }
+        }
+
+        // Select component
+        function selectComponent(category, id) {
+            if (id === 0) {
+                state.selectedComponents[category] = null;
+            } else {
+                state.selectedComponents[category] = {
+                    id: id,
+                    path: `./assets/${category}/${category}-${id}.png`
+                };
+            }
+
+            updateDisplay();
+            
+            if (category === 'body') {
+                document.getElementById('bodySelector').classList.add('hidden');
+            }
+
+            // Hide movement overlay if selecting same category
+            if (state.selectedForMoving === category) {
+                state.selectedForMoving = null;
+                document.getElementById('movementOverlay').classList.add('hidden');
+            }
+
+            // Update export button
+            const exportBtn = document.getElementById('exportBtn');
+            if (state.selectedComponents.body) {
+                exportBtn.disabled = false;
+                exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white';
+            } else {
+                exportBtn.disabled = true;
+                exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed';
+            }
+
+            // Refresh selectors to update selection state
+            populateSelectors();
+        }
+
+        // Update character display
+        function updateDisplay() {
+            const placeholder = document.getElementById('placeholder');
+            const hasBody = state.selectedComponents.body !== null;
+            
+            if (hasBody) {
+                placeholder.style.display = 'none';
+            } else {
+                placeholder.style.display = 'block';
+            }
+
+            // Update each layer
+            ['body', 'mouth', 'eyes', 'head', 'accessory'].forEach(category => {
+                const layer = document.getElementById(category + 'Layer');
+                const component = state.selectedComponents[category];
+                const position = state.positions[category];
+
+                if (component) {
+                    layer.src = component.path;
+                    layer.style.display = 'block';
+                    layer.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                    layer.onclick = () => {
+                        if (category !== 'body') { // Don't allow moving body
+                            selectForMoving(category);
+                        }
+                    };
+                } else {
+                    layer.style.display = 'none';
+                }
+            });
+        }
+
+        // Select component for moving
+        function selectForMoving(category) {
+            state.selectedForMoving = category;
+            document.getElementById('movingLabel').textContent = category;
+            document.getElementById('movementOverlay').classList.remove('hidden');
+        }
+
+        // Move component
+        function moveComponent(direction) {
+            if (!state.selectedForMoving) return;
+
+            const category = state.selectedForMoving;
+            const position = state.positions[category];
+            const moveDistance = 5;
+            const maxX = 100, maxY = 150;
+
+            switch(direction) {
+                case 'up': position.y = Math.max(position.y - moveDistance, -maxY); break;
+                case 'down': position.y = Math.min(position.y + moveDistance, maxY); break;
+                case 'left': position.x = Math.max(position.x - moveDistance, -maxX); break;
+                case 'right': position.x = Math.min(position.x + moveDistance, maxX); break;
+            }
+
+            updateDisplay();
+        }
+
+        // Remove component
+        function removeComponent() {
+            if (!state.selectedForMoving || state.selectedForMoving === 'body') return;
+            
+            selectComponent(state.selectedForMoving, 0);
+            state.selectedForMoving = null;
+            document.getElementById('movementOverlay').classList.add('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('bodyBtn').onclick = () => {
+            const selector = document.getElementById('bodySelector');
+            selector.classList.toggle('hidden');
+        };
+
+        document.getElementById('closeBodybody').onclick = () => {
+            document.getElementById('bodySelector').classList.add('hidden');
+        };
+
+        document.getElementById('moveUp').onclick = () => moveComponent('up');
+        document.getElementById('moveDown').onclick = () => moveComponent('down');
+        document.getElementById('moveLeft').onclick = () => moveComponent('left');
+        document.getElementById('moveRight').onclick = () => moveComponent('right');
+        document.getElementById('removeBtn').onclick = removeComponent;
+        document.getElementById('moveDone').onclick = () => {
+            state.selectedForMoving = null;
+            document.getElementById('movementOverlay').classList.add('hidden');
+        };
+
+        document.getElementById('exportBtn').onclick = () => {
+            if (!state.selectedComponents.body) {
+                alert('Please select a body component before exporting');
+                return;
+            }
+            alert('Export functionality coming soon! Your character is ready.');
+        };
+
+        // Initialize
+        populateSelectors();
+        updateDisplay();
+
+        console.log('Character Creator loaded successfully!');
     </script>
 </body>
 </html>
