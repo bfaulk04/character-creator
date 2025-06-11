@@ -15,8 +15,15 @@
         }
         .character-layer {
             position: absolute;
-            width: 272px;
-            height: 406px;
+            max-width: none;
+            cursor: pointer;
+        }
+        .component-thumbnail {
+            cursor: pointer;
+        }
+        .movement-overlay {
+            position: absolute;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -43,7 +50,7 @@
                     <div id="bodySelector" class="absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md hidden">
                         <div class="flex items-center justify-between mb-3">
                             <span class="font-medium text-yellow-800">Select Body</span>
-                            <button id="closeBodybody" class="p-1 text-gray-500 hover:text-gray-700">✕</button>
+                            <button id="closeBodySelector" class="p-1 text-gray-500 hover:text-gray-700">✕</button>
                         </div>
                         <div id="bodyGrid" class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
                             <!-- Body options will be populated by JavaScript -->
@@ -70,61 +77,122 @@
                         <img id="headLayer" class="character-layer hidden" style="z-index: 3;">
                         <img id="accessoryLayer" class="character-layer hidden" style="z-index: 4;">
                     </div>
-                    
-                    <!-- Movement Overlay -->
-                    <div id="movementOverlay" class="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50 hidden">
-                        <div class="flex items-center justify-between mb-2">
-                            <span id="movingLabel" class="text-xs font-medium text-yellow-800">Component</span>
-                            <button id="removeBtn" class="p-1 text-red-500 hover:text-red-700">✕</button>
-                        </div>
-                        <div class="grid grid-cols-3 gap-1">
-                            <div></div>
-                            <button id="moveUp" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
-                            <div></div>
-                            <button id="moveLeft" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
-                            <button id="moveDone" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
-                            <button id="moveRight" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
-                            <div></div>
-                            <button id="moveDown" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
-                            <div></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Right Panel - Components -->
-        <div class="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col">
+        <div class="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col relative">
             <div class="flex-1 overflow-y-auto">
                 <!-- Head Components -->
-                <div class="mb-4">
+                <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Head</h3>
                     <div id="headSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
+                    <!-- Head movement overlay positioned here -->
+                    <div id="headOverlay" class="movement-overlay hidden absolute top-0 right-0 z-50">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-yellow-800">Head</span>
+                                <button onclick="removeComponent('head')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <div></div>
+                                <button onclick="moveComponent('head', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                <div></div>
+                                <button onclick="moveComponent('head', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                <button onclick="moveComponent('head', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                <div></div>
+                                <button onclick="moveComponent('head', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Eyes Components -->
-                <div class="mb-4">
+                <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Eyes</h3>
                     <div id="eyesSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
+                    <!-- Eyes movement overlay positioned here -->
+                    <div id="eyesOverlay" class="movement-overlay hidden absolute top-0 right-0 z-50">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-yellow-800">Eyes</span>
+                                <button onclick="removeComponent('eyes')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <div></div>
+                                <button onclick="moveComponent('eyes', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                <div></div>
+                                <button onclick="moveComponent('eyes', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                <button onclick="moveComponent('eyes', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                <div></div>
+                                <button onclick="moveComponent('eyes', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Mouth Components -->
-                <div class="mb-4">
+                <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Mouth</h3>
                     <div id="mouthSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
+                    <!-- Mouth movement overlay positioned here -->
+                    <div id="mouthOverlay" class="movement-overlay hidden absolute top-0 right-0 z-50">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-yellow-800">Mouth</span>
+                                <button onclick="removeComponent('mouth')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <div></div>
+                                <button onclick="moveComponent('mouth', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                <div></div>
+                                <button onclick="moveComponent('mouth', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                <button onclick="moveComponent('mouth', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                <div></div>
+                                <button onclick="moveComponent('mouth', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Accessory Components -->
-                <div class="mb-4">
+                <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Accessory</h3>
                     <div id="accessorySelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
+                    </div>
+                    <!-- Accessory movement overlay positioned here -->
+                    <div id="accessoryOverlay" class="movement-overlay hidden absolute top-0 right-0 z-50">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-yellow-800">Accessory</span>
+                                <button onclick="removeComponent('accessory')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <div></div>
+                                <button onclick="moveComponent('accessory', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                <div></div>
+                                <button onclick="moveComponent('accessory', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                <button onclick="moveComponent('accessory', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                <div></div>
+                                <button onclick="moveComponent('accessory', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                <div></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -161,7 +229,7 @@
 
         // Component counts
         const componentCounts = {
-            body: 8,
+            body: 20,
             mouth: 5,
             eyes: 5,
             head: 5,
@@ -170,13 +238,16 @@
 
         // Hide loading message
         setTimeout(() => {
-            document.getElementById('loading').style.display = 'none';
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
         }, 1000);
 
         // Generate component thumbnail
         function createThumbnail(category, id, isSelected = false) {
             const button = document.createElement('button');
-            button.className = `flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
+            button.className = `component-thumbnail flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
                 isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
             }`;
 
@@ -198,7 +269,13 @@
                 button.appendChild(img);
             }
 
-            button.onclick = () => selectComponent(category, id);
+            button.onclick = function() {
+                selectComponent(category, id);
+                // Show movement overlay when selecting a component (except body and none)
+                if (category !== 'body' && id !== 0) {
+                    showMovementOverlay(category);
+                }
+            };
             return button;
         }
 
@@ -206,22 +283,26 @@
         function populateSelectors() {
             ['head', 'eyes', 'mouth', 'accessory'].forEach(category => {
                 const container = document.getElementById(category + 'Selector');
-                container.innerHTML = '';
-                
-                // Add "none" option
-                container.appendChild(createThumbnail(category, 0));
-                
-                // Add numbered options
-                for (let i = 1; i <= componentCounts[category]; i++) {
-                    container.appendChild(createThumbnail(category, i));
+                if (container) {
+                    container.innerHTML = '';
+                    
+                    // Add "none" option
+                    container.appendChild(createThumbnail(category, 0));
+                    
+                    // Add numbered options
+                    for (let i = 1; i <= componentCounts[category]; i++) {
+                        container.appendChild(createThumbnail(category, i));
+                    }
                 }
             });
 
             // Populate body selector
             const bodyGrid = document.getElementById('bodyGrid');
-            bodyGrid.innerHTML = '';
-            for (let i = 1; i <= componentCounts.body; i++) {
-                bodyGrid.appendChild(createThumbnail('body', i));
+            if (bodyGrid) {
+                bodyGrid.innerHTML = '';
+                for (let i = 1; i <= componentCounts.body; i++) {
+                    bodyGrid.appendChild(createThumbnail('body', i));
+                }
             }
         }
 
@@ -239,27 +320,36 @@
             updateDisplay();
             
             if (category === 'body') {
-                document.getElementById('bodySelector').classList.add('hidden');
+                const bodySelector = document.getElementById('bodySelector');
+                if (bodySelector) {
+                    bodySelector.classList.add('hidden');
+                }
             }
 
             // Hide movement overlay if selecting same category
             if (state.selectedForMoving === category) {
-                state.selectedForMoving = null;
-                document.getElementById('movementOverlay').classList.add('hidden');
+                hideMovementOverlay();
             }
 
             // Update export button
-            const exportBtn = document.getElementById('exportBtn');
-            if (state.selectedComponents.body) {
-                exportBtn.disabled = false;
-                exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white';
-            } else {
-                exportBtn.disabled = true;
-                exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed';
-            }
+            updateExportButton();
 
             // Refresh selectors to update selection state
             populateSelectors();
+        }
+
+        // Update export button state
+        function updateExportButton() {
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                if (state.selectedComponents.body) {
+                    exportBtn.disabled = false;
+                    exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white';
+                } else {
+                    exportBtn.disabled = true;
+                    exportBtn.className = 'w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed';
+                }
+            }
         }
 
         // Update character display
@@ -267,45 +357,65 @@
             const placeholder = document.getElementById('placeholder');
             const hasBody = state.selectedComponents.body !== null;
             
-            if (hasBody) {
-                placeholder.style.display = 'none';
-            } else {
-                placeholder.style.display = 'block';
+            if (placeholder) {
+                placeholder.style.display = hasBody ? 'none' : 'block';
             }
 
             // Update each layer
             ['body', 'mouth', 'eyes', 'head', 'accessory'].forEach(category => {
                 const layer = document.getElementById(category + 'Layer');
-                const component = state.selectedComponents[category];
-                const position = state.positions[category];
+                if (layer) {
+                    const component = state.selectedComponents[category];
+                    const position = state.positions[category];
 
-                if (component) {
-                    layer.src = component.path;
-                    layer.style.display = 'block';
-                    layer.style.transform = `translate(${position.x}px, ${position.y}px)`;
-                    layer.onclick = () => {
-                        if (category !== 'body') { // Don't allow moving body
-                            selectForMoving(category);
+                    if (component) {
+                        layer.src = component.path;
+                        layer.style.display = 'block';
+                        layer.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                        layer.style.maxWidth = 'none';
+                        layer.style.height = 'auto';
+                        layer.style.width = 'auto';
+                        // Remove click handler for body, add for others
+                        if (category !== 'body') {
+                            layer.onclick = function() {
+                                showMovementOverlay(category);
+                            };
+                        } else {
+                            layer.onclick = null;
                         }
-                    };
-                } else {
-                    layer.style.display = 'none';
+                    } else {
+                        layer.style.display = 'none';
+                    }
                 }
             });
         }
 
-        // Select component for moving
-        function selectForMoving(category) {
-            state.selectedForMoving = category;
-            document.getElementById('movingLabel').textContent = category;
-            document.getElementById('movementOverlay').classList.remove('hidden');
+        // Show movement overlay for a specific component
+        function showMovementOverlay(category) {
+            // Hide all overlays first
+            hideMovementOverlay();
+            
+            // Show the specific overlay
+            const overlay = document.getElementById(category + 'Overlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                state.selectedForMoving = category;
+            }
+        }
+
+        // Hide all movement overlays
+        function hideMovementOverlay() {
+            ['head', 'eyes', 'mouth', 'accessory'].forEach(category => {
+                const overlay = document.getElementById(category + 'Overlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                }
+            });
+            state.selectedForMoving = null;
         }
 
         // Move component
-        function moveComponent(direction) {
-            if (!state.selectedForMoving) return;
-
-            const category = state.selectedForMoving;
+        function moveComponent(category, direction) {
             const position = state.positions[category];
             const moveDistance = 5;
             const maxX = 100, maxY = 150;
@@ -321,47 +431,52 @@
         }
 
         // Remove component
-        function removeComponent() {
-            if (!state.selectedForMoving || state.selectedForMoving === 'body') return;
+        function removeComponent(category) {
+            if (category === 'body') return;
             
-            selectComponent(state.selectedForMoving, 0);
-            state.selectedForMoving = null;
-            document.getElementById('movementOverlay').classList.add('hidden');
+            selectComponent(category, 0);
+            hideMovementOverlay();
         }
 
         // Event listeners
-        document.getElementById('bodyBtn').onclick = () => {
-            const selector = document.getElementById('bodySelector');
-            selector.classList.toggle('hidden');
-        };
-
-        document.getElementById('closeBodybody').onclick = () => {
-            document.getElementById('bodySelector').classList.add('hidden');
-        };
-
-        document.getElementById('moveUp').onclick = () => moveComponent('up');
-        document.getElementById('moveDown').onclick = () => moveComponent('down');
-        document.getElementById('moveLeft').onclick = () => moveComponent('left');
-        document.getElementById('moveRight').onclick = () => moveComponent('right');
-        document.getElementById('removeBtn').onclick = removeComponent;
-        document.getElementById('moveDone').onclick = () => {
-            state.selectedForMoving = null;
-            document.getElementById('movementOverlay').classList.add('hidden');
-        };
-
-        document.getElementById('exportBtn').onclick = () => {
-            if (!state.selectedComponents.body) {
-                alert('Please select a body component before exporting');
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            const bodyBtn = document.getElementById('bodyBtn');
+            if (bodyBtn) {
+                bodyBtn.onclick = function() {
+                    const selector = document.getElementById('bodySelector');
+                    if (selector) {
+                        selector.classList.toggle('hidden');
+                    }
+                };
             }
-            alert('Export functionality coming soon! Your character is ready.');
-        };
 
-        // Initialize
-        populateSelectors();
-        updateDisplay();
+            const closeBodySelector = document.getElementById('closeBodySelector');
+            if (closeBodySelector) {
+                closeBodySelector.onclick = function() {
+                    const bodySelector = document.getElementById('bodySelector');
+                    if (bodySelector) {
+                        bodySelector.classList.add('hidden');
+                    }
+                };
+            }
 
-        console.log('Character Creator loaded successfully!');
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.onclick = function() {
+                    if (!state.selectedComponents.body) {
+                        alert('Please select a body component before exporting');
+                        return;
+                    }
+                    alert('Export functionality coming soon! Your character is ready.');
+                };
+            }
+
+            // Initialize
+            populateSelectors();
+            updateDisplay();
+
+            console.log('Character Creator loaded successfully!');
+        });
     </script>
 </body>
 </html>
