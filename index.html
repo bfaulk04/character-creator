@@ -329,7 +329,10 @@
         // Simple JavaScript implementation
         const state = {
             selectedComponents: {
-                body: null,
+                body: {
+                    id: 1,
+                    path: './assets/body/body-1.png'
+                },
                 mouth: null,
                 eyes: null,
                 head: null,
@@ -354,7 +357,7 @@
 
         // Component counts
         const componentCounts = {
-            body: 20,
+            body: 21,
             mouth: 5,
             eyes: 5,
             head: 5,
@@ -652,9 +655,10 @@
                 };
             }
 
-            // Initialize
+            // Initialize with body-1 loaded
             populateSelectors();
             updateDisplay();
+            updateExportButton();
 
             console.log('Character Creator loaded successfully!');
         });
