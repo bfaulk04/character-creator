@@ -164,8 +164,10 @@ const CharacterCreator = () => {
       );
     }
     
-    // Use icon path for thumbnails
-    const iconPath = `./assets/icon/${category}-${component.id}.png`;
+    // Use icon-X.png for body, regular assets for other components
+    const thumbnailPath = category === 'body' 
+      ? `./assets/icon/icon-${component.id}.png`
+      : component.path;
     
     return (
       <button
@@ -175,7 +177,7 @@ const CharacterCreator = () => {
         }`}
       >
         <img
-          src={iconPath}
+          src={thumbnailPath}
           alt={component.name}
           className="w-full h-full object-contain"
           onError={(e) => {
