@@ -33,7 +33,7 @@
             position: absolute;
             top: 0;
             right: 0;
-            bottom: 0;
+            height: calc(100% - 80px); /* Stop before export button */
             width: 30px;
             background: linear-gradient(to right, transparent, white);
             pointer-events: none;
@@ -94,81 +94,181 @@
                     
                     <!-- Movement overlays positioned over the preview panel -->
                     <div id="headOverlay" class="movement-overlay hidden absolute top-4 right-4 z-50">
-                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg w-64">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-yellow-800">Head</span>
                                 <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
-                            <div class="grid grid-cols-3 gap-1">
-                                <div></div>
-                                <button onclick="moveComponent('head', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
-                                <div></div>
-                                <button onclick="moveComponent('head', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
-                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
-                                <button onclick="moveComponent('head', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
-                                <div></div>
-                                <button onclick="moveComponent('head', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
-                                <div></div>
+                            
+                            <!-- Position Controls -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Position</div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div></div>
+                                    <button onclick="moveComponent('head', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('head', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                    <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                    <button onclick="moveComponent('head', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('head', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                    <div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rotation Control -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Rotation</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0" max="360" value="0" id="headRotate" 
+                                           class="flex-1" onchange="rotateComponent('head', this.value)">
+                                    <span id="headRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Scale Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Scale</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="headScale" 
+                                           class="flex-1" onchange="scaleComponent('head', this.value)">
+                                    <span id="headScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="eyesOverlay" class="movement-overlay hidden absolute top-20 right-4 z-50">
-                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg w-64">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-yellow-800">Eyes</span>
                                 <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
-                            <div class="grid grid-cols-3 gap-1">
-                                <div></div>
-                                <button onclick="moveComponent('eyes', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
-                                <div></div>
-                                <button onclick="moveComponent('eyes', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
-                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
-                                <button onclick="moveComponent('eyes', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
-                                <div></div>
-                                <button onclick="moveComponent('eyes', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
-                                <div></div>
+                            
+                            <!-- Position Controls -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Position</div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div></div>
+                                    <button onclick="moveComponent('eyes', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('eyes', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                    <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                    <button onclick="moveComponent('eyes', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('eyes', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                    <div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rotation Control -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Rotation</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0" max="360" value="0" id="eyesRotate" 
+                                           class="flex-1" onchange="rotateComponent('eyes', this.value)">
+                                    <span id="eyesRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Scale Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Scale</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="eyesScale" 
+                                           class="flex-1" onchange="scaleComponent('eyes', this.value)">
+                                    <span id="eyesScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="mouthOverlay" class="movement-overlay hidden absolute top-36 right-4 z-50">
-                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg w-64">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-yellow-800">Mouth</span>
                                 <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
-                            <div class="grid grid-cols-3 gap-1">
-                                <div></div>
-                                <button onclick="moveComponent('mouth', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
-                                <div></div>
-                                <button onclick="moveComponent('mouth', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
-                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
-                                <button onclick="moveComponent('mouth', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
-                                <div></div>
-                                <button onclick="moveComponent('mouth', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
-                                <div></div>
+                            
+                            <!-- Position Controls -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Position</div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div></div>
+                                    <button onclick="moveComponent('mouth', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('mouth', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                    <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                    <button onclick="moveComponent('mouth', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('mouth', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                    <div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rotation Control -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Rotation</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0" max="360" value="0" id="mouthRotate" 
+                                           class="flex-1" onchange="rotateComponent('mouth', this.value)">
+                                    <span id="mouthRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Scale Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Scale</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="mouthScale" 
+                                           class="flex-1" onchange="scaleComponent('mouth', this.value)">
+                                    <span id="mouthScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="accessoryOverlay" class="movement-overlay hidden absolute top-52 right-4 z-50">
-                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
+                        <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg w-64">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-yellow-800">Accessory</span>
                                 <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
-                            <div class="grid grid-cols-3 gap-1">
-                                <div></div>
-                                <button onclick="moveComponent('accessory', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
-                                <div></div>
-                                <button onclick="moveComponent('accessory', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
-                                <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
-                                <button onclick="moveComponent('accessory', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
-                                <div></div>
-                                <button onclick="moveComponent('accessory', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
-                                <div></div>
+                            
+                            <!-- Position Controls -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Position</div>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <div></div>
+                                    <button onclick="moveComponent('accessory', 'up')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▲</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('accessory', 'left')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">◀</button>
+                                    <button onclick="hideMovementOverlay()" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium">✓</button>
+                                    <button onclick="moveComponent('accessory', 'right')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▶</button>
+                                    <div></div>
+                                    <button onclick="moveComponent('accessory', 'down')" class="p-2 bg-white hover:bg-gray-100 rounded text-xs border">▼</button>
+                                    <div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rotation Control -->
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-600 mb-1">Rotation</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0" max="360" value="0" id="accessoryRotate" 
+                                           class="flex-1" onchange="rotateComponent('accessory', this.value)">
+                                    <span id="accessoryRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Scale Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Scale</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="accessoryScale" 
+                                           class="flex-1" onchange="scaleComponent('accessory', this.value)">
+                                    <span id="accessoryScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -241,6 +341,13 @@
                 eyes: { x: 0, y: -4 },
                 head: { x: 0, y: -16 },
                 accessory: { x: 0, y: 16 }
+            },
+            transforms: {
+                body: { rotate: 0, scale: 1 },
+                mouth: { rotate: 0, scale: 1 },
+                eyes: { rotate: 0, scale: 1 },
+                head: { rotate: 0, scale: 1 },
+                accessory: { rotate: 0, scale: 1 }
             },
             selectedForMoving: null
         };
@@ -405,14 +512,20 @@
                 if (layer) {
                     const component = state.selectedComponents[category];
                     const position = state.positions[category];
+                    const transforms = state.transforms[category];
 
                     if (component) {
                         layer.src = component.path;
                         layer.style.display = 'block';
-                        layer.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                        
+                        // Apply all transforms: translate, rotate, scale
+                        const transformString = `translate(${position.x}px, ${position.y}px) rotate(${transforms.rotate}deg) scale(${transforms.scale})`;
+                        layer.style.transform = transformString;
                         layer.style.maxWidth = 'none';
                         layer.style.height = 'auto';
                         layer.style.width = 'auto';
+                        layer.style.transformOrigin = 'center center';
+                        
                         // Remove click handler for body, add for others
                         if (category !== 'body') {
                             layer.onclick = function() {
@@ -428,6 +541,20 @@
             });
         }
 
+        // Rotate component
+        function rotateComponent(category, degrees) {
+            state.transforms[category].rotate = degrees;
+            document.getElementById(category + 'RotateValue').textContent = degrees + '°';
+            updateDisplay();
+        }
+
+        // Scale component
+        function scaleComponent(category, scale) {
+            state.transforms[category].scale = parseFloat(scale);
+            document.getElementById(category + 'ScaleValue').textContent = scale + 'x';
+            updateDisplay();
+        }
+
         // Show movement overlay for a specific component
         function showMovementOverlay(category) {
             // Hide all overlays first
@@ -438,6 +565,22 @@
             if (overlay) {
                 overlay.classList.remove('hidden');
                 state.selectedForMoving = category;
+                
+                // Update controls with current values
+                const transforms = state.transforms[category];
+                const rotateSlider = document.getElementById(category + 'Rotate');
+                const scaleSlider = document.getElementById(category + 'Scale');
+                const rotateValue = document.getElementById(category + 'RotateValue');
+                const scaleValue = document.getElementById(category + 'ScaleValue');
+                
+                if (rotateSlider) {
+                    rotateSlider.value = transforms.rotate;
+                    rotateValue.textContent = transforms.rotate + '°';
+                }
+                if (scaleSlider) {
+                    scaleSlider.value = transforms.scale;
+                    scaleValue.textContent = transforms.scale + 'x';
+                }
             }
         }
 
