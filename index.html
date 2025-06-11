@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Creator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .scrollbar-hide {
@@ -574,6 +575,125 @@
             });
         }
 
+        // Export to PDF function
+        const exportToPDF = async () => {
+            if (!state.selectedComponents.body) {
+                alert('Please select a body component before exporting');
+                return;
+            }
+            
+            try {
+                // Get the character canvas
+                const canvas = document.getElementById('characterCanvas');
+                const originalBg = canvas.style.backgroundColor;
+                
+                // Temporarily set white background for export
+                canvas.style.backgroundColor = 'white';
+                
+                // Create a new canvas for the character only
+                const exportCanvas = document.createElement('canvas');
+                const ctx = exportCanvas.getContext('2d');
+                
+                // Set canvas size to character dimensions
+                const characterWidth = 272;
+                const characterHeight = 406;
+                exportCanvas.width = characterWidth;
+                exportCanvas.height = characterHeight;
+                
+                // White background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, characterWidth, characterHeight);
+                
+                // Render each layer in order
+                const layers = ['body', 'mouth', 'eyes', 'head', 'accessory'];
+                
+                for (const category of layers) {
+                    const component = state.selectedComponents[category];
+                    if (component && component.id !== 0) {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        
+                        await new Promise((resolve, reject) => {
+                            img.onload = () => {
+                                // Get transforms
+                                const position = state.positions[category];
+                                const transforms = state.transforms[category];
+                                
+                                // Save context
+                                ctx.save();
+                                
+                                // Apply transforms from center of canvas
+                                const centerX = characterWidth / 2;
+                                const centerY = characterHeight / 2;
+                                
+                                ctx.translate(centerX + position.x, centerY + position.y);
+                                ctx.rotate((transforms.rotate * Math.PI) / 180);
+                                ctx.scale(transforms.scale, transforms.scale);
+                                
+                                // Draw image centered
+                                ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                                
+                                // Restore context
+                                ctx.restore();
+                                resolve();
+                            };
+                            img.onerror = reject;
+                            img.src = component.path;
+                        });
+                    }
+                }
+                
+                // Create PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'in',
+                    format: [8.5, 11]
+                });
+                
+                // Convert canvas to image data
+                const imgData = exportCanvas.toDataURL('image/png');
+                
+                // Calculate dimensions to fit character in printable area
+                const pageWidth = 8.5;
+                const pageHeight = 11;
+                const margin = 0.75; // 0.75" margins on all sides
+                const printableWidth = pageWidth - (margin * 2);
+                const printableHeight = pageHeight - (margin * 2);
+                
+                // Calculate scaled dimensions maintaining aspect ratio
+                const aspectRatio = characterWidth / characterHeight;
+                let imgWidth, imgHeight;
+                
+                if (aspectRatio > (printableWidth / printableHeight)) {
+                    // Width-constrained
+                    imgWidth = printableWidth;
+                    imgHeight = printableWidth / aspectRatio;
+                } else {
+                    // Height-constrained
+                    imgHeight = printableHeight;
+                    imgWidth = printableHeight * aspectRatio;
+                }
+                
+                // Center the image on the page
+                const x = (pageWidth - imgWidth) / 2;
+                const y = (pageHeight - imgHeight) / 2;
+                
+                // Add the character image to PDF
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                
+                // Save the PDF
+                pdf.save('character.pdf');
+                
+                // Restore original background
+                canvas.style.backgroundColor = originalBg;
+                
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed. Please try again.');
+            }
+        };
+
         // Reset all components and settings
         function resetCharacter() {
             // Reset to initial state with body-1
@@ -763,13 +883,7 @@
 
             const exportBtn = document.getElementById('exportBtn');
             if (exportBtn) {
-                exportBtn.onclick = function() {
-                    if (!state.selectedComponents.body) {
-                        alert('Please select a body component before exporting');
-                        return;
-                    }
-                    alert('Export functionality coming soon! Your character is ready.');
-                };
+                exportBtn.onclick = exportToPDF;
             }
 
             // Initialize with body-1 loaded
