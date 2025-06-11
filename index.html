@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Character Creator</title>
+    <title>Character Creator v1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -661,18 +661,18 @@
                 const printableWidth = pageWidth - (margin * 2);
                 const printableHeight = pageHeight - (margin * 2);
                 
-                // Calculate scaled dimensions maintaining aspect ratio
+                // Calculate scaled dimensions maintaining aspect ratio (50% smaller)
                 const aspectRatio = characterWidth / characterHeight;
                 let imgWidth, imgHeight;
                 
                 if (aspectRatio > (printableWidth / printableHeight)) {
                     // Width-constrained
-                    imgWidth = printableWidth;
-                    imgHeight = printableWidth / aspectRatio;
+                    imgWidth = (printableWidth * 0.5); // 50% smaller
+                    imgHeight = (printableWidth * 0.5) / aspectRatio;
                 } else {
                     // Height-constrained
-                    imgHeight = printableHeight;
-                    imgWidth = printableHeight * aspectRatio;
+                    imgHeight = (printableHeight * 0.5); // 50% smaller
+                    imgWidth = (printableHeight * 0.5) * aspectRatio;
                 }
                 
                 // Center the image on the page
@@ -682,8 +682,13 @@
                 // Add the character image to PDF
                 pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
                 
+                // Generate filename with timestamp
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/[-:T]/g, '').slice(0, 14);
+                const filename = `character_${timestamp}.pdf`;
+                
                 // Save the PDF
-                pdf.save('character.pdf');
+                pdf.save(filename);
                 
                 // Restore original background
                 canvas.style.backgroundColor = originalBg;
