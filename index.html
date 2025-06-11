@@ -235,10 +235,10 @@
             },
             positions: {
                 body: { x: 0, y: 0 },
-                mouth: { x: 0, y: 0 },
-                eyes: { x: 0, y: 0 },
-                head: { x: 0, y: 0 },
-                accessory: { x: 0, y: 0 }
+                mouth: { x: 0, y: 4 },
+                eyes: { x: 0, y: -4 },
+                head: { x: 0, y: -16 },
+                accessory: { x: 0, y: 16 }
             },
             selectedForMoving: null
         };
@@ -310,11 +310,13 @@
                     container.innerHTML = '';
                     
                     // Add "none" option
-                    container.appendChild(createThumbnail(category, 0));
+                    const noneSelected = !state.selectedComponents[category];
+                    container.appendChild(createThumbnail(category, 0, noneSelected));
                     
                     // Add numbered options
                     for (let i = 1; i <= componentCounts[category]; i++) {
-                        container.appendChild(createThumbnail(category, i));
+                        const isSelected = state.selectedComponents[category]?.id === i;
+                        container.appendChild(createThumbnail(category, i, isSelected));
                     }
                 }
             });
@@ -324,7 +326,8 @@
             if (bodyGrid) {
                 bodyGrid.innerHTML = '';
                 for (let i = 1; i <= componentCounts.body; i++) {
-                    bodyGrid.appendChild(createThumbnail('body', i));
+                    const isSelected = state.selectedComponents.body?.id === i;
+                    bodyGrid.appendChild(createThumbnail('body', i, isSelected));
                 }
             }
         }
