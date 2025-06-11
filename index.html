@@ -341,6 +341,16 @@
                     id: id,
                     path: `./assets/${category}/${category}-${id}.png`
                 };
+                
+                // Set default position for new components (if not already positioned)
+                if (category !== 'body' && (state.positions[category].x === 0 && state.positions[category].y === 0)) {
+                    switch(category) {
+                        case 'head': state.positions[category] = { x: 0, y: -16 }; break;
+                        case 'eyes': state.positions[category] = { x: 0, y: -4 }; break;
+                        case 'mouth': state.positions[category] = { x: 0, y: 4 }; break;
+                        case 'accessory': state.positions[category] = { x: 0, y: 16 }; break;
+                    }
+                }
             }
 
             updateDisplay();
