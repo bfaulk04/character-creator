@@ -149,7 +149,7 @@ const CharacterCreator = () => {
     });
   };
 
-  const ComponentThumbnail = ({ component, isSelected, onClick }) => {
+  const ComponentThumbnail = ({ component, isSelected, onClick, category }) => {
     if (component.id === 0) {
       // None option
       return (
@@ -164,6 +164,9 @@ const CharacterCreator = () => {
       );
     }
     
+    // Use icon path for thumbnails
+    const iconPath = `./assets/icon/${category}-${component.id}.png`;
+    
     return (
       <button
         onClick={onClick}
@@ -172,7 +175,7 @@ const CharacterCreator = () => {
         }`}
       >
         <img
-          src={component.path}
+          src={iconPath}
           alt={component.name}
           className="w-full h-full object-contain"
           onError={(e) => {
@@ -199,6 +202,7 @@ const CharacterCreator = () => {
             <ComponentThumbnail
               key={component.id}
               component={component}
+              category={category}
               isSelected={selectedComponents[category]?.id === component.id}
               onClick={() => selectComponent(category, component)}
             />
@@ -281,6 +285,7 @@ const CharacterCreator = () => {
             <ComponentThumbnail
               key={body.id}
               component={body}
+              category="body"
               isSelected={selectedComponents.body?.id === body.id}
               onClick={() => selectComponent('body', body)}
             />
