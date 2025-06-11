@@ -1,78 +1,56 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Download, Move, Palette, X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 
 const CharacterCreator = () => {
-  const [currentStep, setCurrentStep] = useState('body-selection'); // 'body-selection' or 'editor'
   const [selectedComponents, setSelectedComponents] = useState({
     body: null,
-    eyes: null,
     mouth: null,
+    eyes: null,
     head: null,
     accessory: null
   });
   
   const [componentPositions, setComponentPositions] = useState({
     body: { x: 0, y: 0 },
-    eyes: { x: 0, y: 0 },
     mouth: { x: 0, y: 0 },
+    eyes: { x: 0, y: 0 },
     head: { x: 0, y: 0 },
     accessory: { x: 0, y: 0 }
   });
   
-  const [bodyColor, setBodyColor] = useState('#87CEEB');
-  const [headColor, setHeadColor] = useState('#FF69B4');
   const [selectedForMoving, setSelectedForMoving] = useState(null);
-  const [showColorPicker, setShowColorPicker] = useState(null);
+  const [showBodySelector, setShowBodySelector] = useState(false);
   
   const previewRef = useRef(null);
   
-  // Mock data with visual representations
-  const mockComponents = {
-    body: [
-      { id: 1, name: 'inline-1.svg', emoji: '🐻', color: '#87CEEB' },
-      { id: 2, name: 'inline-2.svg', emoji: '🤖', color: '#FFD700' },
-      { id: 3, name: 'inline-3.svg', emoji: '👽', color: '#98FB98' },
-      { id: 4, name: 'inline-4.svg', emoji: '🐸', color: '#90EE90' },
-      { id: 5, name: 'inline-5.svg', emoji: '🐧', color: '#ADD8E6' }
-    ],
-    eyes: [
-      { id: 0, name: 'none', visual: '' },
-      { id: 1, name: 'inline-1.svg', visual: '👀' },
-      { id: 2, name: 'inline-2.svg', visual: '• •' },
-      { id: 3, name: 'inline-3.svg', visual: '⊙ ⊙' },
-      { id: 4, name: 'inline-4.svg', visual: '◉ ◉' },
-      { id: 5, name: 'inline-5.svg', visual: '◐ ◑' }
-    ],
-    mouth: [
-      { id: 0, name: 'none', visual: '' },
-      { id: 1, name: 'inline-1.svg', visual: '▼' },
-      { id: 2, name: 'inline-2.svg', visual: '●' },
-      { id: 3, name: 'inline-3.svg', visual: '—' },
-      { id: 4, name: 'inline-4.svg', visual: '═' },
-      { id: 5, name: 'inline-5.svg', visual: '◡' }
-    ],
-    head: [
-      { id: 0, name: 'none', visual: '' },
-      { id: 1, name: 'inline-1.svg', visual: '🎩' },
-      { id: 2, name: 'inline-2.svg', visual: '🎧' },
-      { id: 3, name: 'inline-3.svg', visual: '👒' },
-      { id: 4, name: 'inline-4.svg', visual: '🧢' },
-      { id: 5, name: 'inline-5.svg', visual: '👑' }
-    ],
-    accessory: [
-      { id: 0, name: 'none', visual: '' },
-      { id: 1, name: 'inline-1.svg', visual: '🎀' },
-      { id: 2, name: 'inline-2.svg', visual: '👔' },
-      { id: 3, name: 'inline-3.svg', visual: '📿' },
-      { id: 4, name: 'inline-4.svg', visual: '🦺' },
-      { id: 5, name: 'inline-5.svg', visual: '🎗️' }
-    ]
+  // Component counts - adjust these based on your actual assets
+  const componentCounts = {
+    body: 5,
+    mouth: 5, 
+    eyes: 5,
+    head: 5,
+    accessory: 5
   };
-
-  const selectBody = (body) => {
-    setSelectedComponents(prev => ({ ...prev, body }));
-    setBodyColor(body.color);
-    setCurrentStep('editor');
+  
+  // Generate component lists based on counts
+  const generateComponents = (category, count) => {
+    const components = [{ id: 0, name: 'none', path: null }];
+    for (let i = 1; i <= count; i++) {
+      components.push({
+        id: i,
+        name: `${category}-${i}.png`,
+        path: `./assets/${category}/${category}-${i}.png`
+      });
+    }
+    return components;
+  };
+  
+  const mockComponents = {
+    body: generateComponents('body', componentCounts.body),
+    mouth: generateComponents('mouth', componentCounts.mouth),
+    eyes: generateComponents('eyes', componentCounts.eyes),
+    head: generateComponents('head', componentCounts.head),
+    accessory: generateComponents('accessory', componentCounts.accessory)
   };
 
   const selectComponent = (category, component) => {
@@ -80,6 +58,16 @@ const CharacterCreator = () => {
       ...prev,
       [category]: component
     }));
+    
+    // Hide movement overlay when selecting a new component in same category
+    if (selectedForMoving === category) {
+      setSelectedForMoving(null);
+    }
+    
+    // Hide body selector when body is chosen
+    if (category === 'body') {
+      setShowBodySelector(false);
+    }
   };
 
   const removeComponent = (category) => {
@@ -98,11 +86,15 @@ const CharacterCreator = () => {
       let newX = current.x;
       let newY = current.y;
       
+      // Calculate bounds based on 272x406 character area + padding
+      const maxX = 100;
+      const maxY = 150;
+      
       switch(direction) {
-        case 'up': newY = Math.max(current.y - moveDistance, -150); break;
-        case 'down': newY = Math.min(current.y + moveDistance, 150); break;
-        case 'left': newX = Math.max(current.x - moveDistance, -150); break;
-        case 'right': newX = Math.min(current.x + moveDistance, 150); break;
+        case 'up': newY = Math.max(current.y - moveDistance, -maxY); break;
+        case 'down': newY = Math.min(current.y + moveDistance, maxY); break;
+        case 'left': newX = Math.max(current.x - moveDistance, -maxX); break;
+        case 'right': newX = Math.min(current.x + moveDistance, maxX); break;
         default: break;
       }
       
@@ -119,14 +111,14 @@ const CharacterCreator = () => {
       return;
     }
     
-    // Create a canvas to render the character
+    // Create a canvas for 8.5x11" with margins
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // Set canvas size for 8.5x11" at 300 DPI with safe margins
     const dpi = 300;
     const pageWidth = 8.5 * dpi;
     const pageHeight = 11 * dpi;
+    const margin = 0.75 * dpi; // 0.75" margins
     
     canvas.width = pageWidth;
     canvas.height = pageHeight;
@@ -135,16 +127,16 @@ const CharacterCreator = () => {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, pageWidth, pageHeight);
     
-    // Center the character
+    // Character area centered on page
     const centerX = pageWidth / 2;
     const centerY = pageHeight / 2;
     
-    // For now, show a placeholder - in real implementation, render SVGs
+    // Placeholder for actual PNG rendering
     ctx.fillStyle = '#333';
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('Character Export', centerX, centerY - 50);
-    ctx.fillText('(SVG rendering would go here)', centerX, centerY);
+    ctx.fillText('(PNG stack rendering would go here)', centerX, centerY);
     
     // Convert to blob and download
     canvas.toBlob(blob => {
@@ -157,90 +149,75 @@ const CharacterCreator = () => {
     });
   };
 
-  // Body Selection Screen
-  if (currentStep === 'body-selection') {
+  const ComponentThumbnail = ({ component, isSelected, onClick }) => {
+    if (component.id === 0) {
+      // None option
+      return (
+        <button
+          onClick={onClick}
+          className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center transition-all ${
+            isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
+          }`}
+        >
+          <span className="text-gray-400 text-lg">∅</span>
+        </button>
+      );
+    }
+    
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white rounded-lg border-2 border-gray-300 p-8 max-w-2xl w-full">
-          <h1 className="text-2xl font-bold text-center mb-8 text-gray-800">Choose Your Character Body</h1>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {mockComponents.body.map(body => (
-              <button
-                key={body.id}
-                onClick={() => selectBody(body)}
-                className="aspect-square border-2 border-gray-300 rounded-lg hover:border-blue-500 transition-all p-4 flex flex-col items-center justify-center gap-2 hover:bg-blue-50"
-              >
-                <div className="text-4xl">{body.emoji}</div>
-                <div 
-                  className="w-8 h-8 rounded-full border-2 border-gray-300"
-                  style={{ backgroundColor: body.color }}
-                ></div>
-              </button>
-            ))}
-          </div>
+      <button
+        onClick={onClick}
+        className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
+          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
+        }`}
+      >
+        <img
+          src={component.path}
+          alt={component.name}
+          className="w-full h-full object-contain"
+          onError={(e) => {
+            // Fallback display for missing images
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400" style={{display: 'none'}}>
+          {component.name}
         </div>
-      </div>
+      </button>
     );
-  }
+  };
 
   const ComponentSelector = ({ category, title }) => {
     const components = mockComponents[category];
     
     return (
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-gray-700">{title}</h3>
-          {(category === 'body' || category === 'head') && selectedComponents[category] && (
-            <button
-              onClick={() => setShowColorPicker(showColorPicker === category ? null : category)}
-              className="p-1 text-gray-500 hover:text-gray-700"
-            >
-              <Palette size={16} />
-            </button>
-          )}
-        </div>
-        
-        {showColorPicker === category && (
-          <div className="mb-2 p-2 bg-gray-50 rounded">
-            <input
-              type="color"
-              value={category === 'body' ? bodyColor : headColor}
-              onChange={(e) => category === 'body' ? setBodyColor(e.target.value) : setHeadColor(e.target.value)}
-              className="w-full h-8 rounded border"
-            />
-          </div>
-        )}
-        
+        <h3 className="font-medium text-gray-700 mb-2">{title}</h3>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {components.map(component => (
-            <button
+            <ComponentThumbnail
               key={component.id}
+              component={component}
+              isSelected={selectedComponents[category]?.id === component.id}
               onClick={() => selectComponent(category, component)}
-              className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center text-lg transition-all ${
-                selectedComponents[category]?.id === component.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 bg-white hover:border-gray-400'
-              }`}
-            >
-              {component.visual || component.emoji || (component.id === 0 ? '∅' : '?')}
-            </button>
+            />
           ))}
         </div>
       </div>
     );
   };
 
-  const MovementOverlay = ({ category, component }) => {
+  const MovementOverlay = ({ category }) => {
     if (selectedForMoving !== category) return null;
     
     return (
-      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-2 shadow-lg z-50">
-        <div className="flex items-center gap-1 mb-2">
-          <span className="text-xs font-medium text-yellow-800">Move {category}</span>
+      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-yellow-800 capitalize">{category}</span>
           <button
             onClick={() => removeComponent(category)}
-            className="ml-2 p-1 text-red-500 hover:text-red-700"
+            className="p-1 text-red-500 hover:text-red-700"
           >
             <X size={12} />
           </button>
@@ -249,35 +226,35 @@ const CharacterCreator = () => {
           <div></div>
           <button
             onClick={() => moveComponent(category, 'up')}
-            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
           >
-            ↑
+            ▲
           </button>
           <div></div>
           <button
             onClick={() => moveComponent(category, 'left')}
-            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
           >
-            ←
+            ◀
           </button>
           <button
             onClick={() => setSelectedForMoving(null)}
-            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium"
           >
             ✓
           </button>
           <button
             onClick={() => moveComponent(category, 'right')}
-            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
           >
-            →
+            ▶
           </button>
           <div></div>
           <button
             onClick={() => moveComponent(category, 'down')}
-            className="p-1 bg-white hover:bg-gray-100 rounded text-xs border"
+            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
           >
-            ↓
+            ▼
           </button>
           <div></div>
         </div>
@@ -285,50 +262,92 @@ const CharacterCreator = () => {
     );
   };
 
-  const CharacterPreview = () => {
-    const renderLayer = (category, zIndex) => {
-      const component = selectedComponents[category];
-      if (!component || component.id === 0) return null;
-      
-      const position = componentPositions[category];
-      const color = category === 'body' ? bodyColor : category === 'head' ? headColor : undefined;
-      
-      return (
-        <div
-          key={category}
-          className="absolute cursor-pointer relative"
-          style={{
-            transform: `translate(${position.x}px, ${position.y}px)`,
-            zIndex: zIndex
-          }}
-          onClick={() => setSelectedForMoving(selectedForMoving === category ? null : category)}
-        >
-          <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl shadow-lg border-2 transition-all ${
-              selectedForMoving === category ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-white'
-            }`}
-            style={color ? { backgroundColor: color, color: 'white' } : {}}
+  const BodySelector = () => {
+    if (!showBodySelector) return null;
+    
+    return (
+      <div className="absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-medium text-yellow-800">Select Body</span>
+          <button
+            onClick={() => setShowBodySelector(false)}
+            className="p-1 text-gray-500 hover:text-gray-700"
           >
-            {component.visual || component.emoji}
-          </div>
-          <MovementOverlay category={category} component={component} />
+            <X size={16} />
+          </button>
         </div>
-      );
-    };
+        <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+          {mockComponents.body.slice(1).map(body => (
+            <ComponentThumbnail
+              key={body.id}
+              component={body}
+              isSelected={selectedComponents.body?.id === body.id}
+              onClick={() => selectComponent('body', body)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
+  const CharacterLayer = ({ category, zIndex }) => {
+    const component = selectedComponents[category];
+    if (!component || component.id === 0) return null;
+    
+    const position = componentPositions[category];
+    
+    return (
+      <div
+        className="absolute cursor-pointer"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          zIndex: zIndex
+        }}
+        onClick={() => setSelectedForMoving(selectedForMoving === category ? null : category)}
+      >
+        <div className="relative">
+          <img
+            src={component.path}
+            alt={component.name}
+            className={`max-w-none transition-all ${
+              selectedForMoving === category ? 'ring-2 ring-yellow-400' : ''
+            }`}
+            style={{ width: '272px', height: '406px' }}
+            onError={(e) => {
+              // Fallback for missing images
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+          <div 
+            className="flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 text-gray-500 text-sm"
+            style={{ width: '272px', height: '406px', display: 'none' }}
+          >
+            {component.name}
+          </div>
+          <MovementOverlay category={category} />
+        </div>
+      </div>
+    );
+  };
+
+  const CharacterPreview = () => {
     return (
       <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-        {/* Render layers in stacking order */}
-        {renderLayer('body', 1)}
-        {renderLayer('eyes', 2)}
-        {renderLayer('mouth', 3)}
-        {renderLayer('head', 4)}
-        {renderLayer('accessory', 5)}
+        {/* Character layers in z-index order */}
+        <CharacterLayer category="body" zIndex={0} />
+        <CharacterLayer category="mouth" zIndex={1} />
+        <CharacterLayer category="eyes" zIndex={2} />
+        <CharacterLayer category="head" zIndex={3} />
+        <CharacterLayer category="accessory" zIndex={4} />
         
         {!selectedComponents.body && (
           <div className="text-gray-400 text-center">
-            <div className="text-6xl mb-2">👤</div>
-            <div>Select a body to start</div>
+            <div className="w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+              <div className="text-6xl mb-4">👤</div>
+              <div className="text-lg font-medium mb-2">Blank Slate</div>
+              <div className="text-sm">Click "Body" to start building</div>
+            </div>
           </div>
         )}
       </div>
@@ -340,42 +359,32 @@ const CharacterCreator = () => {
       {/* Left Panel - Preview */}
       <div className="flex-1 mr-4">
         <div className="bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4 relative">
+            <button
+              onClick={() => setShowBodySelector(!showBodySelector)}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
+            >
               <span className="text-gray-400">🎨</span>
               Body
-            </h2>
-            <button
-              onClick={() => setCurrentStep('body-selection')}
-              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
-            >
-              Change Body
             </button>
+            <BodySelector />
           </div>
           
           <div 
             ref={previewRef}
-            className="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative"
+            className="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden"
           >
             <CharacterPreview />
           </div>
-          
-          {selectedForMoving && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-              <p className="text-sm text-yellow-800">
-                Click on the <strong>{selectedForMoving}</strong> component above to move it, or click elsewhere to deselect.
-              </p>
-            </div>
-          )}
         </div>
       </div>
       
       {/* Right Panel - Components */}
       <div className="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col">
         <div className="flex-1 overflow-y-auto">
+          <ComponentSelector category="head" title="Head" />
           <ComponentSelector category="eyes" title="Eyes" />
           <ComponentSelector category="mouth" title="Mouth" />
-          <ComponentSelector category="head" title="Head" />
           <ComponentSelector category="accessory" title="Accessory" />
         </div>
         
