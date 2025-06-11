@@ -20,6 +20,21 @@
         }
         .component-thumbnail {
             cursor: pointer;
+            padding: 10px;
+        }
+        .component-selector {
+            position: relative;
+        }
+        .component-selector::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, transparent, white);
+            pointer-events: none;
+            z-index: 10;
         }
         .movement-overlay {
             position: absolute;
@@ -83,7 +98,7 @@
                         <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-yellow-800">Head</span>
-                                <button onclick="removeComponent('head')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                                <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <div></div>
@@ -103,7 +118,7 @@
                         <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-yellow-800">Eyes</span>
-                                <button onclick="removeComponent('eyes')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                                <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <div></div>
@@ -123,7 +138,7 @@
                         <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-yellow-800">Mouth</span>
-                                <button onclick="removeComponent('mouth')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                                <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <div></div>
@@ -143,7 +158,7 @@
                         <div class="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-yellow-800">Accessory</span>
-                                <button onclick="removeComponent('accessory')" class="p-1 text-red-500 hover:text-red-700">✕</button>
+                                <button onclick="hideMovementOverlay()" class="p-1 text-red-500 hover:text-red-700">✕</button>
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <div></div>
@@ -168,7 +183,7 @@
                 <!-- Head Components -->
                 <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Head</h3>
-                    <div id="headSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div id="headSelector" class="component-selector flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
@@ -176,7 +191,7 @@
                 <!-- Eyes Components -->
                 <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Eyes</h3>
-                    <div id="eyesSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div id="eyesSelector" class="component-selector flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
@@ -184,7 +199,7 @@
                 <!-- Mouth Components -->
                 <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Mouth</h3>
-                    <div id="mouthSelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div id="mouthSelector" class="component-selector flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
@@ -192,7 +207,7 @@
                 <!-- Accessory Components -->
                 <div class="mb-4 relative">
                     <h3 class="font-medium text-gray-700 mb-2">Accessory</h3>
-                    <div id="accessorySelector" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div id="accessorySelector" class="component-selector flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
@@ -248,9 +263,16 @@
         // Generate component thumbnail
         function createThumbnail(category, id, isSelected = false) {
             const button = document.createElement('button');
-            button.className = `component-thumbnail flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
-                isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-            }`;
+            const isBeingMoved = state.selectedForMoving === category && state.selectedComponents[category]?.id === id;
+            
+            let borderClass = 'border-gray-300';
+            if (isBeingMoved) {
+                borderClass = 'border-blue-500';
+            } else if (isSelected) {
+                borderClass = 'border-green-500';
+            }
+            
+            button.className = `component-thumbnail flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-gray-400 ${borderClass}`;
 
             if (id === 0) {
                 button.innerHTML = '<span class="text-gray-400 text-lg flex items-center justify-center h-full">∅</span>';
