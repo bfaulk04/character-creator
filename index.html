@@ -53,12 +53,37 @@
             <div class="bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col">
                 <div class="flex items-center justify-between mb-4 relative">
                     <button 
-                        id="bodyBtn"
+                        id="backgroundBtn"
                         class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
                     >
                         <span class="text-gray-400">🎨</span>
+                        Background
+                    </button>
+                    
+                    <button 
+                        id="bodyBtn"
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
+                    >
+                        <span class="text-gray-400">🎭</span>
                         Body
                     </button>
+                    
+                    <button 
+                        id="resetBtn"
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
+                    >
+                        <span class="text-gray-400">🔄</span>
+                        Reset
+                    </button>
+                    
+                    <!-- Background Color Picker -->
+                    <div id="backgroundPicker" class="absolute top-12 left-0 bg-gray-100 border-2 border-gray-300 rounded-lg p-4 shadow-lg z-50 hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium text-gray-800">Background Color</span>
+                            <button id="closeBackgroundPicker" class="p-1 text-gray-500 hover:text-gray-700">✕</button>
+                        </div>
+                        <input type="color" id="backgroundColorInput" value="#ffffff" class="w-32 h-10 rounded border">
+                    </div>
                     
                     <!-- Body Selector Popup -->
                     <div id="bodySelector" class="absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 w-96 hidden">
@@ -72,7 +97,11 @@
                     </div>
                 </div>
                 
-                <div class="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden flex items-center justify-center">
+                <div 
+                    id="characterCanvas"
+                    class="flex-1 bg-white rounded-lg relative overflow-hidden flex items-center justify-center"
+                    style="background-color: #ffffff;"
+                >
                     <!-- Character Preview Container -->
                     <div id="characterPreview" class="relative flex items-center justify-center">
                         <!-- Default placeholder -->
@@ -352,7 +381,8 @@
                 head: { rotate: 0, scale: 1 },
                 accessory: { rotate: 0, scale: 1 }
             },
-            selectedForMoving: null
+            selectedForMoving: null,
+            backgroundColor: '#ffffff'
         };
 
         // Component counts
@@ -544,7 +574,58 @@
             });
         }
 
-        // Rotate component
+        // Reset all components and settings
+        function resetCharacter() {
+            // Reset to initial state with body-1
+            state.selectedComponents = {
+                body: {
+                    id: 1,
+                    path: './assets/body/body-1.png'
+                },
+                mouth: null,
+                eyes: null,
+                head: null,
+                accessory: null
+            };
+            
+            // Reset positions
+            state.positions = {
+                body: { x: 0, y: 0 },
+                mouth: { x: 0, y: 4 },
+                eyes: { x: 0, y: -4 },
+                head: { x: 0, y: -16 },
+                accessory: { x: 0, y: 16 }
+            };
+            
+            // Reset transforms
+            state.transforms = {
+                body: { rotate: 0, scale: 1 },
+                mouth: { rotate: 0, scale: 1 },
+                eyes: { rotate: 0, scale: 1 },
+                head: { rotate: 0, scale: 1 },
+                accessory: { rotate: 0, scale: 1 }
+            };
+            
+            // Reset background
+            state.backgroundColor = '#ffffff';
+            document.getElementById('characterCanvas').style.backgroundColor = '#ffffff';
+            document.getElementById('backgroundColorInput').value = '#ffffff';
+            
+            // Reset UI
+            state.selectedForMoving = null;
+            hideMovementOverlay();
+            
+            // Update display
+            updateDisplay();
+            updateExportButton();
+            populateSelectors();
+        }
+
+        // Change background color
+        function changeBackgroundColor(color) {
+            state.backgroundColor = color;
+            document.getElementById('characterCanvas').style.backgroundColor = color;
+        }
         function rotateComponent(category, degrees) {
             state.transforms[category].rotate = degrees;
             document.getElementById(category + 'RotateValue').textContent = degrees + '°';
@@ -624,6 +705,42 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            const backgroundBtn = document.getElementById('backgroundBtn');
+            if (backgroundBtn) {
+                backgroundBtn.onclick = function() {
+                    const picker = document.getElementById('backgroundPicker');
+                    if (picker) {
+                        picker.classList.toggle('hidden');
+                    }
+                };
+            }
+
+            const closeBackgroundPicker = document.getElementById('closeBackgroundPicker');
+            if (closeBackgroundPicker) {
+                closeBackgroundPicker.onclick = function() {
+                    const picker = document.getElementById('backgroundPicker');
+                    if (picker) {
+                        picker.classList.add('hidden');
+                    }
+                };
+            }
+
+            const backgroundColorInput = document.getElementById('backgroundColorInput');
+            if (backgroundColorInput) {
+                backgroundColorInput.onchange = function() {
+                    changeBackgroundColor(this.value);
+                };
+            }
+
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.onclick = function() {
+                    if (confirm('Reset all changes and start over?')) {
+                        resetCharacter();
+                    }
+                };
+            }
+
             const bodyBtn = document.getElementById('bodyBtn');
             if (bodyBtn) {
                 bodyBtn.onclick = function() {
