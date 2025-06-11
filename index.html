@@ -1,415 +1,516 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Creator</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for component selectors */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="m-0 p-0">
+    <div id="root"></div>
 
-const CharacterCreator = () => {
-  const [selectedComponents, setSelectedComponents] = useState({
-    body: null,
-    mouth: null,
-    eyes: null,
-    head: null,
-    accessory: null
-  });
-  
-  const [componentPositions, setComponentPositions] = useState({
-    body: { x: 0, y: 0 },
-    mouth: { x: 0, y: 0 },
-    eyes: { x: 0, y: 0 },
-    head: { x: 0, y: 0 },
-    accessory: { x: 0, y: 0 }
-  });
-  
-  const [selectedForMoving, setSelectedForMoving] = useState(null);
-  const [showBodySelector, setShowBodySelector] = useState(false);
-  
-  const previewRef = useRef(null);
-  
-  // Component counts - adjust these based on your actual assets
-  const componentCounts = {
-    body: 5,
-    mouth: 5, 
-    eyes: 5,
-    head: 5,
-    accessory: 5
-  };
-  
-  // Generate component lists based on counts
-  const generateComponents = (category, count) => {
-    const components = [{ id: 0, name: 'none', path: null }];
-    for (let i = 1; i <= count; i++) {
-      components.push({
-        id: i,
-        name: `${category}-${i}.png`,
-        path: `./assets/${category}/${category}-${i}.png`
-      });
-    }
-    return components;
-  };
-  
-  const mockComponents = {
-    body: generateComponents('body', componentCounts.body),
-    mouth: generateComponents('mouth', componentCounts.mouth),
-    eyes: generateComponents('eyes', componentCounts.eyes),
-    head: generateComponents('head', componentCounts.head),
-    accessory: generateComponents('accessory', componentCounts.accessory)
-  };
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        const { Download, X } = lucide;
 
-  const selectComponent = (category, component) => {
-    setSelectedComponents(prev => ({
-      ...prev,
-      [category]: component
-    }));
-    
-    // Hide movement overlay when selecting a new component in same category
-    if (selectedForMoving === category) {
-      setSelectedForMoving(null);
-    }
-    
-    // Hide body selector when body is chosen
-    if (category === 'body') {
-      setShowBodySelector(false);
-    }
-  };
+        const CharacterCreator = () => {
+            const [selectedComponents, setSelectedComponents] = useState({
+                body: null,
+                mouth: null,
+                eyes: null,
+                head: null,
+                accessory: null
+            });
+            
+            const [componentPositions, setComponentPositions] = useState({
+                body: { x: 0, y: 0 },
+                mouth: { x: 0, y: 0 },
+                eyes: { x: 0, y: 0 },
+                head: { x: 0, y: 0 },
+                accessory: { x: 0, y: 0 }
+            });
+            
+            const [selectedForMoving, setSelectedForMoving] = useState(null);
+            const [showBodySelector, setShowBodySelector] = useState(false);
+            
+            const previewRef = useRef(null);
+            
+            // Component counts - adjust these based on your actual assets
+            const componentCounts = {
+                body: 8,
+                mouth: 5, 
+                eyes: 5,
+                head: 5,
+                accessory: 5
+            };
+            
+            // Generate component lists based on counts
+            const generateComponents = (category, count) => {
+                const components = [{ id: 0, name: 'none', path: null }];
+                for (let i = 1; i <= count; i++) {
+                    components.push({
+                        id: i,
+                        name: `${category}-${i}.png`,
+                        path: `./assets/${category}/${category}-${i}.png`
+                    });
+                }
+                return components;
+            };
+            
+            const mockComponents = {
+                body: generateComponents('body', componentCounts.body),
+                mouth: generateComponents('mouth', componentCounts.mouth),
+                eyes: generateComponents('eyes', componentCounts.eyes),
+                head: generateComponents('head', componentCounts.head),
+                accessory: generateComponents('accessory', componentCounts.accessory)
+            };
 
-  const removeComponent = (category) => {
-    if (category === 'body') return; // Can't remove body
-    setSelectedComponents(prev => ({
-      ...prev,
-      [category]: null
-    }));
-    setSelectedForMoving(null);
-  };
+            const selectComponent = (category, component) => {
+                setSelectedComponents(prev => ({
+                    ...prev,
+                    [category]: component
+                }));
+                
+                // Hide movement overlay when selecting a new component in same category
+                if (selectedForMoving === category) {
+                    setSelectedForMoving(null);
+                }
+                
+                // Hide body selector when body is chosen
+                if (category === 'body') {
+                    setShowBodySelector(false);
+                }
+            };
 
-  const moveComponent = (category, direction) => {
-    const moveDistance = 5;
-    setComponentPositions(prev => {
-      const current = prev[category];
-      let newX = current.x;
-      let newY = current.y;
-      
-      // Calculate bounds based on 272x406 character area + padding
-      const maxX = 100;
-      const maxY = 150;
-      
-      switch(direction) {
-        case 'up': newY = Math.max(current.y - moveDistance, -maxY); break;
-        case 'down': newY = Math.min(current.y + moveDistance, maxY); break;
-        case 'left': newX = Math.max(current.x - moveDistance, -maxX); break;
-        case 'right': newX = Math.min(current.x + moveDistance, maxX); break;
-        default: break;
-      }
-      
-      return {
-        ...prev,
-        [category]: { x: newX, y: newY }
-      };
-    });
-  };
+            const removeComponent = (category) => {
+                if (category === 'body') return; // Can't remove body
+                setSelectedComponents(prev => ({
+                    ...prev,
+                    [category]: null
+                }));
+                setSelectedForMoving(null);
+            };
 
-  const exportToPDF = () => {
-    if (!selectedComponents.body) {
-      alert('Please select a body component before exporting');
-      return;
-    }
-    
-    // Create a canvas for 8.5x11" with margins
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    const dpi = 300;
-    const pageWidth = 8.5 * dpi;
-    const pageHeight = 11 * dpi;
-    const margin = 0.75 * dpi; // 0.75" margins
-    
-    canvas.width = pageWidth;
-    canvas.height = pageHeight;
-    
-    // White background
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, pageWidth, pageHeight);
-    
-    // Character area centered on page
-    const centerX = pageWidth / 2;
-    const centerY = pageHeight / 2;
-    
-    // Placeholder for actual PNG rendering
-    ctx.fillStyle = '#333';
-    ctx.font = '24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Character Export', centerX, centerY - 50);
-    ctx.fillText('(PNG stack rendering would go here)', centerX, centerY);
-    
-    // Convert to blob and download
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'character.pdf';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-  };
+            const moveComponent = (category, direction) => {
+                const moveDistance = 5;
+                setComponentPositions(prev => {
+                    const current = prev[category];
+                    let newX = current.x;
+                    let newY = current.y;
+                    
+                    // Calculate bounds based on 272x406 character area + padding
+                    const maxX = 100;
+                    const maxY = 150;
+                    
+                    switch(direction) {
+                        case 'up': newY = Math.max(current.y - moveDistance, -maxY); break;
+                        case 'down': newY = Math.min(current.y + moveDistance, maxY); break;
+                        case 'left': newX = Math.max(current.x - moveDistance, -maxX); break;
+                        case 'right': newX = Math.min(current.x + moveDistance, maxX); break;
+                        default: break;
+                    }
+                    
+                    return {
+                        ...prev,
+                        [category]: { x: newX, y: newY }
+                    };
+                });
+            };
 
-  const ComponentThumbnail = ({ component, isSelected, onClick, category }) => {
-    if (component.id === 0) {
-      // None option
-      return (
-        <button
-          onClick={onClick}
-          className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center transition-all ${
-            isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-          }`}
-        >
-          <span className="text-gray-400 text-lg">∅</span>
-        </button>
-      );
-    }
-    
-    // Use icon-X.png for body, regular assets for other components
-    const thumbnailPath = category === 'body' 
-      ? `./assets/icon/icon-${component.id}.png`
-      : component.path;
-    
-    return (
-      <button
-        onClick={onClick}
-        className={`flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
-          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
-        }`}
-      >
-        <img
-          src={thumbnailPath}
-          alt={component.name}
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            // Fallback display for missing images
-            e.target.style.display = 'none';
-            e.target.nextSibling.style.display = 'flex';
-          }}
-        />
-        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400" style={{display: 'none'}}>
-          {component.name}
-        </div>
-      </button>
-    );
-  };
+            const exportToPDF = async () => {
+                if (!selectedComponents.body) {
+                    alert('Please select a body component before exporting');
+                    return;
+                }
+                
+                try {
+                    // Create a temporary container for the character
+                    const tempContainer = document.createElement('div');
+                    tempContainer.style.position = 'absolute';
+                    tempContainer.style.top = '-9999px';
+                    tempContainer.style.width = '272px';
+                    tempContainer.style.height = '406px';
+                    tempContainer.style.backgroundColor = 'transparent';
+                    document.body.appendChild(tempContainer);
+                    
+                    // Add character layers to temp container
+                    const layers = ['body', 'mouth', 'eyes', 'head', 'accessory'];
+                    for (let i = 0; i < layers.length; i++) {
+                        const category = layers[i];
+                        const component = selectedComponents[category];
+                        if (component && component.id !== 0) {
+                            const img = document.createElement('img');
+                            img.src = component.path;
+                            img.style.position = 'absolute';
+                            img.style.width = '272px';
+                            img.style.height = '406px';
+                            img.style.zIndex = i;
+                            const position = componentPositions[category];
+                            img.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                            tempContainer.appendChild(img);
+                        }
+                    }
+                    
+                    // Wait for images to load
+                    const images = tempContainer.querySelectorAll('img');
+                    await Promise.all(Array.from(images).map(img => {
+                        return new Promise((resolve) => {
+                            if (img.complete) {
+                                resolve();
+                            } else {
+                                img.onload = resolve;
+                                img.onerror = resolve;
+                            }
+                        });
+                    }));
+                    
+                    // Capture with html2canvas
+                    const canvas = await html2canvas(tempContainer, {
+                        backgroundColor: null,
+                        scale: 2
+                    });
+                    
+                    // Create PDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'in',
+                        format: [8.5, 11]
+                    });
+                    
+                    // Add character to center of page
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 272 / 96; // Convert px to inches (96 DPI)
+                    const imgHeight = 406 / 96;
+                    const x = (8.5 - imgWidth) / 2;
+                    const y = (11 - imgHeight) / 2;
+                    
+                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                    pdf.save('character.pdf');
+                    
+                    // Clean up
+                    document.body.removeChild(tempContainer);
+                    
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    alert('Export failed. Please try again.');
+                }
+            };
 
-  const ComponentSelector = ({ category, title }) => {
-    const components = mockComponents[category];
-    
-    return (
-      <div className="mb-4">
-        <h3 className="font-medium text-gray-700 mb-2">{title}</h3>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {components.map(component => (
-            <ComponentThumbnail
-              key={component.id}
-              component={component}
-              category={category}
-              isSelected={selectedComponents[category]?.id === component.id}
-              onClick={() => selectComponent(category, component)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
+            const ComponentThumbnail = ({ component, isSelected, onClick, category }) => {
+                if (component.id === 0) {
+                    // None option
+                    return React.createElement('button', {
+                        onClick: onClick,
+                        className: `flex-shrink-0 w-16 h-16 border-2 rounded-lg flex items-center justify-center transition-all ${
+                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
+                        }`
+                    }, React.createElement('span', {
+                        className: 'text-gray-400 text-lg'
+                    }, '∅'));
+                }
+                
+                // Use icon-X.png for body, regular assets for other components
+                const thumbnailPath = category === 'body' 
+                    ? `./assets/icon/icon-${component.id}.png`
+                    : component.path;
+                
+                return React.createElement('button', {
+                    onClick: onClick,
+                    className: `flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all ${
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'
+                    }`
+                }, [
+                    React.createElement('img', {
+                        key: 'img',
+                        src: thumbnailPath,
+                        alt: component.name,
+                        className: 'w-full h-full object-contain',
+                        onError: (e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                        }
+                    }),
+                    React.createElement('div', {
+                        key: 'fallback',
+                        className: 'w-full h-full flex items-center justify-center text-xs text-gray-400',
+                        style: { display: 'none' }
+                    }, component.name)
+                ]);
+            };
 
-  const MovementOverlay = ({ category }) => {
-    if (selectedForMoving !== category) return null;
-    
-    return (
-      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-yellow-800 capitalize">{category}</span>
-          <button
-            onClick={() => removeComponent(category)}
-            className="p-1 text-red-500 hover:text-red-700"
-          >
-            <X size={12} />
-          </button>
-        </div>
-        <div className="grid grid-cols-3 gap-1">
-          <div></div>
-          <button
-            onClick={() => moveComponent(category, 'up')}
-            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
-          >
-            ▲
-          </button>
-          <div></div>
-          <button
-            onClick={() => moveComponent(category, 'left')}
-            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => setSelectedForMoving(null)}
-            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium"
-          >
-            ✓
-          </button>
-          <button
-            onClick={() => moveComponent(category, 'right')}
-            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
-          >
-            ▶
-          </button>
-          <div></div>
-          <button
-            onClick={() => moveComponent(category, 'down')}
-            className="p-2 bg-white hover:bg-gray-100 rounded text-xs border"
-          >
-            ▼
-          </button>
-          <div></div>
-        </div>
-      </div>
-    );
-  };
+            const ComponentSelector = ({ category, title }) => {
+                const components = mockComponents[category];
+                
+                return React.createElement('div', { className: 'mb-4' }, [
+                    React.createElement('h3', {
+                        key: 'title',
+                        className: 'font-medium text-gray-700 mb-2'
+                    }, title),
+                    React.createElement('div', {
+                        key: 'selector',
+                        className: 'flex gap-2 overflow-x-auto pb-2 scrollbar-hide'
+                    }, components.map(component => 
+                        React.createElement(ComponentThumbnail, {
+                            key: component.id,
+                            component: component,
+                            category: category,
+                            isSelected: selectedComponents[category]?.id === component.id,
+                            onClick: () => selectComponent(category, component)
+                        })
+                    ))
+                ]);
+            };
 
-  const BodySelector = () => {
-    if (!showBodySelector) return null;
-    
-    return (
-      <div className="absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-medium text-yellow-800">Select Body</span>
-          <button
-            onClick={() => setShowBodySelector(false)}
-            className="p-1 text-gray-500 hover:text-gray-700"
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-          {mockComponents.body.slice(1).map(body => (
-            <ComponentThumbnail
-              key={body.id}
-              component={body}
-              category="body"
-              isSelected={selectedComponents.body?.id === body.id}
-              onClick={() => selectComponent('body', body)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
+            const MovementOverlay = ({ category }) => {
+                if (selectedForMoving !== category) return null;
+                
+                return React.createElement('div', {
+                    className: 'absolute -bottom-20 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-3 shadow-lg z-50'
+                }, [
+                    React.createElement('div', {
+                        key: 'header',
+                        className: 'flex items-center justify-between mb-2'
+                    }, [
+                        React.createElement('span', {
+                            key: 'label',
+                            className: 'text-xs font-medium text-yellow-800 capitalize'
+                        }, category),
+                        React.createElement('button', {
+                            key: 'remove',
+                            onClick: () => removeComponent(category),
+                            className: 'p-1 text-red-500 hover:text-red-700'
+                        }, React.createElement(X, { size: 12 }))
+                    ]),
+                    React.createElement('div', {
+                        key: 'controls',
+                        className: 'grid grid-cols-3 gap-1'
+                    }, [
+                        React.createElement('div', { key: 'tl' }),
+                        React.createElement('button', {
+                            key: 'up',
+                            onClick: () => moveComponent(category, 'up'),
+                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
+                        }, '▲'),
+                        React.createElement('div', { key: 'tr' }),
+                        React.createElement('button', {
+                            key: 'left',
+                            onClick: () => moveComponent(category, 'left'),
+                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
+                        }, '◀'),
+                        React.createElement('button', {
+                            key: 'done',
+                            onClick: () => setSelectedForMoving(null),
+                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border font-medium'
+                        }, '✓'),
+                        React.createElement('button', {
+                            key: 'right',
+                            onClick: () => moveComponent(category, 'right'),
+                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
+                        }, '▶'),
+                        React.createElement('div', { key: 'bl' }),
+                        React.createElement('button', {
+                            key: 'down',
+                            onClick: () => moveComponent(category, 'down'),
+                            className: 'p-2 bg-white hover:bg-gray-100 rounded text-xs border'
+                        }, '▼'),
+                        React.createElement('div', { key: 'br' })
+                    ])
+                ]);
+            };
 
-  const CharacterLayer = ({ category, zIndex }) => {
-    const component = selectedComponents[category];
-    if (!component || component.id === 0) return null;
-    
-    const position = componentPositions[category];
-    
-    return (
-      <div
-        className="absolute cursor-pointer"
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          zIndex: zIndex
-        }}
-        onClick={() => setSelectedForMoving(selectedForMoving === category ? null : category)}
-      >
-        <div className="relative">
-          <img
-            src={component.path}
-            alt={component.name}
-            className={`max-w-none transition-all ${
-              selectedForMoving === category ? 'ring-2 ring-yellow-400' : ''
-            }`}
-            style={{ width: '272px', height: '406px' }}
-            onError={(e) => {
-              // Fallback for missing images
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-          <div 
-            className="flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 text-gray-500 text-sm"
-            style={{ width: '272px', height: '406px', display: 'none' }}
-          >
-            {component.name}
-          </div>
-          <MovementOverlay category={category} />
-        </div>
-      </div>
-    );
-  };
+            const BodySelector = () => {
+                if (!showBodySelector) return null;
+                
+                return React.createElement('div', {
+                    className: 'absolute top-12 left-0 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4 shadow-lg z-50 max-w-md'
+                }, [
+                    React.createElement('div', {
+                        key: 'header',
+                        className: 'flex items-center justify-between mb-3'
+                    }, [
+                        React.createElement('span', {
+                            key: 'title',
+                            className: 'font-medium text-yellow-800'
+                        }, 'Select Body'),
+                        React.createElement('button', {
+                            key: 'close',
+                            onClick: () => setShowBodySelector(false),
+                            className: 'p-1 text-gray-500 hover:text-gray-700'
+                        }, React.createElement(X, { size: 16 }))
+                    ]),
+                    React.createElement('div', {
+                        key: 'grid',
+                        className: 'grid grid-cols-4 gap-2 max-h-64 overflow-y-auto'
+                    }, mockComponents.body.slice(1).map(body =>
+                        React.createElement(ComponentThumbnail, {
+                            key: body.id,
+                            component: body,
+                            category: 'body',
+                            isSelected: selectedComponents.body?.id === body.id,
+                            onClick: () => selectComponent('body', body)
+                        })
+                    ))
+                ]);
+            };
 
-  const CharacterPreview = () => {
-    return (
-      <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-        {/* Character layers in z-index order */}
-        <CharacterLayer category="body" zIndex={0} />
-        <CharacterLayer category="mouth" zIndex={1} />
-        <CharacterLayer category="eyes" zIndex={2} />
-        <CharacterLayer category="head" zIndex={3} />
-        <CharacterLayer category="accessory" zIndex={4} />
-        
-        {!selectedComponents.body && (
-          <div className="text-gray-400 text-center">
-            <div className="w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
-              <div className="text-6xl mb-4">👤</div>
-              <div className="text-lg font-medium mb-2">Blank Slate</div>
-              <div className="text-sm">Click "Body" to start building</div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
+            const CharacterLayer = ({ category, zIndex }) => {
+                const component = selectedComponents[category];
+                if (!component || component.id === 0) return null;
+                
+                const position = componentPositions[category];
+                
+                return React.createElement('div', {
+                    className: 'absolute cursor-pointer',
+                    style: {
+                        transform: `translate(${position.x}px, ${position.y}px)`,
+                        zIndex: zIndex
+                    },
+                    onClick: () => setSelectedForMoving(selectedForMoving === category ? null : category)
+                }, React.createElement('div', {
+                    className: 'relative'
+                }, [
+                    React.createElement('img', {
+                        key: 'img',
+                        src: component.path,
+                        alt: component.name,
+                        className: `max-w-none transition-all ${
+                            selectedForMoving === category ? 'ring-2 ring-yellow-400' : ''
+                        }`,
+                        style: { width: '272px', height: '406px' },
+                        onError: (e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                        }
+                    }),
+                    React.createElement('div', {
+                        key: 'fallback',
+                        className: 'flex items-center justify-center bg-gray-200 border-2 border-dashed border-gray-400 text-gray-500 text-sm',
+                        style: { width: '272px', height: '406px', display: 'none' }
+                    }, component.name),
+                    React.createElement(MovementOverlay, {
+                        key: 'overlay',
+                        category: category
+                    })
+                ]));
+            };
 
-  return (
-    <div className="flex h-screen bg-gray-100 p-4">
-      {/* Left Panel - Preview */}
-      <div className="flex-1 mr-4">
-        <div className="bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-4 relative">
-            <button
-              onClick={() => setShowBodySelector(!showBodySelector)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2"
-            >
-              <span className="text-gray-400">🎨</span>
-              Body
-            </button>
-            <BodySelector />
-          </div>
-          
-          <div 
-            ref={previewRef}
-            className="flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden"
-          >
-            <CharacterPreview />
-          </div>
-        </div>
-      </div>
-      
-      {/* Right Panel - Components */}
-      <div className="w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col">
-        <div className="flex-1 overflow-y-auto">
-          <ComponentSelector category="head" title="Head" />
-          <ComponentSelector category="eyes" title="Eyes" />
-          <ComponentSelector category="mouth" title="Mouth" />
-          <ComponentSelector category="accessory" title="Accessory" />
-        </div>
-        
-        <button
-          onClick={exportToPDF}
-          disabled={!selectedComponents.body}
-          className={`w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 ${
-            selectedComponents.body
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <Download size={18} />
-          Export
-        </button>
-      </div>
-    </div>
-  );
-};
+            const CharacterPreview = () => {
+                return React.createElement('div', {
+                    className: 'relative w-full h-full flex items-center justify-center overflow-hidden'
+                }, [
+                    // Character layers in z-index order
+                    React.createElement(CharacterLayer, { key: 'body', category: 'body', zIndex: 0 }),
+                    React.createElement(CharacterLayer, { key: 'mouth', category: 'mouth', zIndex: 1 }),
+                    React.createElement(CharacterLayer, { key: 'eyes', category: 'eyes', zIndex: 2 }),
+                    React.createElement(CharacterLayer, { key: 'head', category: 'head', zIndex: 3 }),
+                    React.createElement(CharacterLayer, { key: 'accessory', category: 'accessory', zIndex: 4 }),
+                    
+                    !selectedComponents.body && React.createElement('div', {
+                        key: 'placeholder',
+                        className: 'text-gray-400 text-center'
+                    }, React.createElement('div', {
+                        className: 'w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center'
+                    }, [
+                        React.createElement('div', {
+                            key: 'icon',
+                            className: 'text-6xl mb-4'
+                        }, '👤'),
+                        React.createElement('div', {
+                            key: 'title',
+                            className: 'text-lg font-medium mb-2'
+                        }, 'Blank Slate'),
+                        React.createElement('div', {
+                            key: 'subtitle',
+                            className: 'text-sm'
+                        }, 'Click "Body" to start building')
+                    ]))
+                ]);
+            };
 
-export default CharacterCreator;
+            return React.createElement('div', {
+                className: 'flex h-screen bg-gray-100 p-4'
+            }, [
+                // Left Panel - Preview
+                React.createElement('div', {
+                    key: 'left-panel',
+                    className: 'flex-1 mr-4'
+                }, React.createElement('div', {
+                    className: 'bg-white rounded-lg border-2 border-gray-300 h-full p-4 flex flex-col'
+                }, [
+                    React.createElement('div', {
+                        key: 'header',
+                        className: 'flex items-center justify-between mb-4 relative'
+                    }, [
+                        React.createElement('button', {
+                            key: 'body-btn',
+                            onClick: () => setShowBodySelector(!showBodySelector),
+                            className: 'px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium flex items-center gap-2'
+                        }, [
+                            React.createElement('span', {
+                                key: 'icon',
+                                className: 'text-gray-400'
+                            }, '🎨'),
+                            'Body'
+                        ]),
+                        React.createElement(BodySelector, { key: 'body-selector' })
+                    ]),
+                    React.createElement('div', {
+                        key: 'preview',
+                        ref: previewRef,
+                        className: 'flex-1 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 relative overflow-hidden'
+                    }, React.createElement(CharacterPreview))
+                ])),
+                
+                // Right Panel - Components
+                React.createElement('div', {
+                    key: 'right-panel',
+                    className: 'w-80 bg-white rounded-lg border-2 border-gray-300 p-4 flex flex-col'
+                }, [
+                    React.createElement('div', {
+                        key: 'selectors',
+                        className: 'flex-1 overflow-y-auto'
+                    }, [
+                        React.createElement(ComponentSelector, { key: 'head', category: 'head', title: 'Head' }),
+                        React.createElement(ComponentSelector, { key: 'eyes', category: 'eyes', title: 'Eyes' }),
+                        React.createElement(ComponentSelector, { key: 'mouth', category: 'mouth', title: 'Mouth' }),
+                        React.createElement(ComponentSelector, { key: 'accessory', category: 'accessory', title: 'Accessory' })
+                    ]),
+                    React.createElement('button', {
+                        key: 'export',
+                        onClick: exportToPDF,
+                        disabled: !selectedComponents.body,
+                        className: `w-full mt-4 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 ${
+                            selectedComponents.body
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`
+                    }, [
+                        React.createElement(Download, { key: 'icon', size: 18 }),
+                        'Export'
+                    ])
+                ])
+            ]);
+        };
+
+        // Render the app
+        ReactDOM.render(React.createElement(CharacterCreator), document.getElementById('root'));
+    </script>
+</body>
+</html>
