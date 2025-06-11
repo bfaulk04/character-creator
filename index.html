@@ -77,8 +77,8 @@
                     <!-- Character Preview Container -->
                     <div id="characterPreview" class="relative flex items-center justify-center">
                         <!-- Default placeholder -->
-                        <div id="placeholder" class="text-gray-400 text-center">
-                            <div class="w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                        <div id="placeholder" class="text-gray-400 text-center cursor-pointer" onclick="document.getElementById('bodyBtn').click()">
+                            <div class="w-64 h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-gray-400 transition-colors">
                                 <div class="text-6xl mb-4">👤</div>
                                 <div class="text-lg font-medium mb-2">Blank Slate</div>
                                 <div class="text-sm">Click "Body" to start building</div>
@@ -235,10 +235,10 @@
             },
             positions: {
                 body: { x: 0, y: 0 },
-                mouth: { x: 0, y: 4 },
-                eyes: { x: 0, y: -4 },
-                head: { x: 0, y: -16 },
-                accessory: { x: 0, y: 16 }
+                mouth: { x: 0, y: 0 },
+                eyes: { x: 0, y: 0 },
+                head: { x: 0, y: 0 },
+                accessory: { x: 0, y: 0 }
             },
             selectedForMoving: null
         };
@@ -342,13 +342,21 @@
                     path: `./assets/${category}/${category}-${id}.png`
                 };
                 
-                // Set default position for new components (if not already positioned)
-                if (category !== 'body' && (state.positions[category].x === 0 && state.positions[category].y === 0)) {
+                // Set default position for new components only when first selecting them
+                if (category !== 'body') {
                     switch(category) {
-                        case 'head': state.positions[category] = { x: 0, y: -16 }; break;
-                        case 'eyes': state.positions[category] = { x: 0, y: -4 }; break;
-                        case 'mouth': state.positions[category] = { x: 0, y: 4 }; break;
-                        case 'accessory': state.positions[category] = { x: 0, y: 16 }; break;
+                        case 'head': 
+                            state.positions[category] = { x: 0, y: -16 }; 
+                            break;
+                        case 'eyes': 
+                            state.positions[category] = { x: 0, y: -4 }; 
+                            break;
+                        case 'mouth': 
+                            state.positions[category] = { x: 0, y: 4 }; 
+                            break;
+                        case 'accessory': 
+                            state.positions[category] = { x: 0, y: 16 }; 
+                            break;
                     }
                 }
             }
