@@ -739,7 +739,7 @@
                                 // Save context
                                 ctx.save();
                                 
-                                // Apply transforms from center of thumbnail
+                                // Apply transforms with invert filter
                                 const centerX = 32; // Half of 64px
                                 const centerY = 32;
                                 
@@ -750,8 +750,16 @@
                                 ctx.rotate((transforms.rotate * Math.PI) / 180);
                                 ctx.scale(transforms.scale * scaleFactor, transforms.scale * scaleFactor);
                                 
+                                // Apply invert filter if needed
+                                if (transforms.invert) {
+                                    ctx.filter = 'invert(1)';
+                                }
+                                
                                 // Draw image centered
                                 ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                                
+                                // Reset filter
+                                ctx.filter = 'none';
                                 
                                 // Restore context
                                 ctx.restore();
@@ -819,28 +827,30 @@
             
             if (!popup || !grid) return;
             
-            // Populate grid
-            grid.innerHTML = '';
-            for (let i = 0; i < 8; i++) {
-                const characterData = state.savedCharacters[i];
-                const slot = document.createElement('div');
-                slot.className = 'w-16 h-16 border-2 border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-blue-400';
-                
-                if (characterData) {
-                    slot.innerHTML = `<img src="${characterData.thumbnail}" alt="Saved ${i+1}" class="w-full h-full object-cover">`;
-                    slot.onclick = () => {
-                        loadCharacter(i);
-                        popup.classList.add('hidden');
-                    };
-                } else {
-                    slot.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">∅</div>';
-                    slot.className += ' cursor-not-allowed opacity-50';
+            // Populate grid only when opening
+            if (popup.classList.contains('hidden')) {
+                grid.innerHTML = '';
+                for (let i = 0; i < 8; i++) {
+                    const characterData = state.savedCharacters[i];
+                    const slot = document.createElement('div');
+                    slot.className = 'w-16 h-16 border-2 border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-blue-400';
+                    
+                    if (characterData) {
+                        slot.innerHTML = `<img src="${characterData.thumbnail}" alt="Saved ${i+1}" class="w-full h-full object-cover">`;
+                        slot.onclick = () => {
+                            loadCharacter(i);
+                            popup.classList.add('hidden');
+                        };
+                    } else {
+                        slot.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">∅</div>';
+                        slot.className += ' cursor-not-allowed opacity-50';
+                    }
+                    
+                    grid.appendChild(slot);
                 }
-                
-                grid.appendChild(slot);
             }
             
-            popup.classList.remove('hidden');
+            popup.classList.toggle('hidden');
         }
 
         // Export to PDF function
@@ -898,8 +908,16 @@
                                 ctx.rotate((transforms.rotate * Math.PI) / 180);
                                 ctx.scale(transforms.scale, transforms.scale);
                                 
+                                // Apply invert filter if needed
+                                if (transforms.invert) {
+                                    ctx.filter = 'invert(1)';
+                                }
+                                
                                 // Draw image centered
                                 ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                                
+                                // Reset filter
+                                ctx.filter = 'none';
                                 
                                 // Restore context
                                 ctx.restore();
@@ -1151,7 +1169,12 @@
 
             const loadBtn = document.getElementById('loadBtn');
             if (loadBtn) {
-                loadBtn.onclick = showLoadPopup;
+                loadBtn.onclick = function() {
+                    const popup = document.getElementById('loadCharacterPopup');
+                    if (popup) {
+                        popup.classList.toggle('hidden');
+                    }
+                };
             }
 
             const closeLoadPopup = document.getElementById('closeLoadPopup');
