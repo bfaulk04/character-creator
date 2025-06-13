@@ -99,7 +99,15 @@
                             <span class="font-medium text-gray-800">Background Color</span>
                             <button id="closeBackgroundPicker" class="p-1 text-gray-500 hover:text-gray-700">×</button>
                         </div>
-                        <input type="color" id="backgroundColorInput" value="#ffffff" class="w-32 h-10 rounded border">
+                        <input type="color" id="backgroundColorInput" value="#ffffff" class="w-32 h-10 rounded border mb-4">
+                        
+                        <!-- Saved Characters -->
+                        <div class="mb-4 relative">
+                            <h3 class="font-medium text-gray-700 mb-2">Saved Characters</h3>
+                            <div id="savedCharactersGrid" class="grid grid-cols-4 gap-2">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Load Character Popup -->
@@ -827,30 +835,28 @@
             
             if (!popup || !grid) return;
             
-            // Populate grid only when opening
-            if (popup.classList.contains('hidden')) {
-                grid.innerHTML = '';
-                for (let i = 0; i < 8; i++) {
-                    const characterData = state.savedCharacters[i];
-                    const slot = document.createElement('div');
-                    slot.className = 'w-16 h-16 border-2 border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-blue-400';
-                    
-                    if (characterData) {
-                        slot.innerHTML = `<img src="${characterData.thumbnail}" alt="Saved ${i+1}" class="w-full h-full object-cover">`;
-                        slot.onclick = () => {
-                            loadCharacter(i);
-                            popup.classList.add('hidden');
-                        };
-                    } else {
-                        slot.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">∅</div>';
-                        slot.className += ' cursor-not-allowed opacity-50';
-                    }
-                    
-                    grid.appendChild(slot);
+            // Populate grid
+            grid.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const characterData = state.savedCharacters[i];
+                const slot = document.createElement('div');
+                slot.className = 'w-16 h-16 border-2 border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-blue-400';
+                
+                if (characterData) {
+                    slot.innerHTML = `<img src="${characterData.thumbnail}" alt="Saved ${i+1}" class="w-full h-full object-cover">`;
+                    slot.onclick = () => {
+                        loadCharacter(i);
+                        popup.classList.add('hidden');
+                    };
+                } else {
+                    slot.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400">∅</div>';
+                    slot.className += ' cursor-not-allowed opacity-50';
                 }
+                
+                grid.appendChild(slot);
             }
             
-            popup.classList.toggle('hidden');
+            popup.classList.remove('hidden');
         }
 
         // Export to PDF function
@@ -1172,7 +1178,11 @@
                 loadBtn.onclick = function() {
                     const popup = document.getElementById('loadCharacterPopup');
                     if (popup) {
-                        popup.classList.toggle('hidden');
+                        if (popup.classList.contains('hidden')) {
+                            showLoadPopup();
+                        } else {
+                            popup.classList.add('hidden');
+                        }
                     }
                 };
             }
