@@ -192,6 +192,15 @@
                                     <span id="headScaleValue" class="text-xs text-gray-600 w-8">1x</span>
                                 </div>
                             </div>
+                            
+                            <!-- Invert Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="headInvert" onchange="invertComponent('head', this.checked)">
+                                    <span class="text-xs text-gray-600">Invert</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -236,6 +245,15 @@
                                            class="flex-1" onchange="scaleComponent('eyes', this.value)">
                                     <span id="eyesScaleValue" class="text-xs text-gray-600 w-8">1x</span>
                                 </div>
+                            </div>
+                            
+                            <!-- Invert Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="eyesInvert" onchange="invertComponent('eyes', this.checked)">
+                                    <span class="text-xs text-gray-600">Invert</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -282,6 +300,15 @@
                                     <span id="mouthScaleValue" class="text-xs text-gray-600 w-8">1x</span>
                                 </div>
                             </div>
+                            
+                            <!-- Invert Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="mouthInvert" onchange="invertComponent('mouth', this.checked)">
+                                    <span class="text-xs text-gray-600">Invert</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -326,6 +353,15 @@
                                            class="flex-1" onchange="scaleComponent('accessory', this.value)">
                                     <span id="accessoryScaleValue" class="text-xs text-gray-600 w-8">1x</span>
                                 </div>
+                            </div>
+                            
+                            <!-- Invert Control -->
+                            <div class="mb-2">
+                                <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="accessoryInvert" onchange="invertComponent('accessory', this.checked)">
+                                    <span class="text-xs text-gray-600">Invert</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -403,11 +439,11 @@
                 accessory: { x: 0, y: 16 }
             },
             transforms: {
-                body: { rotate: 0, scale: 1 },
-                mouth: { rotate: 0, scale: 1 },
-                eyes: { rotate: 0, scale: 1 },
-                head: { rotate: 0, scale: 1 },
-                accessory: { rotate: 0, scale: 1 }
+                body: { rotate: 0, scale: 1, invert: false },
+                mouth: { rotate: 0, scale: 1, invert: false },
+                eyes: { rotate: 0, scale: 1, invert: false },
+                head: { rotate: 0, scale: 1, invert: false },
+                accessory: { rotate: 0, scale: 1, invert: false }
             },
             selectedForMoving: null,
             backgroundColor: '#ffffff',
@@ -580,9 +616,11 @@
                         layer.src = component.path;
                         layer.style.display = 'block';
                         
-                        // Apply all transforms: translate, rotate, scale
+                        // Apply all transforms: translate, rotate, scale, invert
+                        const invertFilter = transforms.invert ? 'invert(1)' : 'invert(0)';
                         const transformString = `translate(${position.x}px, ${position.y}px) rotate(${transforms.rotate}deg) scale(${transforms.scale})`;
                         layer.style.transform = transformString;
+                        layer.style.filter = invertFilter;
                         layer.style.maxWidth = 'none';
                         layer.style.height = 'auto';
                         layer.style.width = 'auto';
@@ -954,11 +992,11 @@
             
             // Reset transforms
             state.transforms = {
-                body: { rotate: 0, scale: 1 },
-                mouth: { rotate: 0, scale: 1 },
-                eyes: { rotate: 0, scale: 1 },
-                head: { rotate: 0, scale: 1 },
-                accessory: { rotate: 0, scale: 1 }
+                body: { rotate: 0, scale: 1, invert: false },
+                mouth: { rotate: 0, scale: 1, invert: false },
+                eyes: { rotate: 0, scale: 1, invert: false },
+                head: { rotate: 0, scale: 1, invert: false },
+                accessory: { rotate: 0, scale: 1, invert: false }
             };
             
             // Reset background
@@ -994,6 +1032,12 @@
             updateDisplay();
         }
 
+        // Invert component colors
+        function invertComponent(category, invert) {
+            state.transforms[category].invert = invert;
+            updateDisplay();
+        }
+
         // Show movement overlay for a specific component
         function showMovementOverlay(category) {
             // Hide all overlays first
@@ -1009,6 +1053,7 @@
                 const transforms = state.transforms[category];
                 const rotateSlider = document.getElementById(category + 'Rotate');
                 const scaleSlider = document.getElementById(category + 'Scale');
+                const invertCheckbox = document.getElementById(category + 'Invert');
                 const rotateValue = document.getElementById(category + 'RotateValue');
                 const scaleValue = document.getElementById(category + 'ScaleValue');
                 
@@ -1019,6 +1064,9 @@
                 if (scaleSlider) {
                     scaleSlider.value = transforms.scale;
                     scaleValue.textContent = transforms.scale + 'x';
+                }
+                if (invertCheckbox) {
+                    invertCheckbox.checked = transforms.invert;
                 }
             }
         }
