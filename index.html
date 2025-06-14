@@ -24,6 +24,10 @@
             cursor: pointer;
             padding: 10px;
         }
+        .mouth-thumbnail {
+            cursor: pointer;
+            padding: 20px;
+        }
         .component-selector {
             position: relative;
         }
@@ -40,6 +44,65 @@
             background: linear-gradient(to right, transparent, white);
             pointer-events: none;
             z-index: 10;
+        }
+        /* Improved click targets */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.15s ease;
+        }
+        .checkbox-container:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .checkbox-container input[type="checkbox"] {
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+        .slider-container {
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .slider-container input[type="range"] {
+            cursor: pointer;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+        .slider-container input[type="range"]::-webkit-slider-track {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #3b82f6;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .slider-container input[type="range"]::-moz-range-track {
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+            border: none;
+        }
+        .slider-container input[type="range"]::-moz-range-thumb {
+            background: #3b82f6;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -185,27 +248,31 @@
                             <!-- Rotation Control -->
                             <div class="mb-3">
                                 <div class="text-xs text-gray-600 mb-1">Rotation</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="360" value="0" id="headRotate" 
-                                           class="flex-1" onchange="rotateComponent('head', this.value)">
-                                    <span id="headRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0" max="360" value="0" id="headRotate" 
+                                               class="flex-1" onchange="rotateComponent('head', this.value)">
+                                        <span id="headRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Scale Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Scale</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="headScale" 
-                                           class="flex-1" onchange="scaleComponent('head', this.value)">
-                                    <span id="headScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0.5" max="2" step="0.1" value="1" id="headScale" 
+                                               class="flex-1" onchange="scaleComponent('head', this.value)">
+                                        <span id="headScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Invert Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
-                                <label class="flex items-center gap-2">
+                                <label class="checkbox-container">
                                     <input type="checkbox" id="headInvert" onchange="invertComponent('head', this.checked)">
                                     <span class="text-xs text-gray-600">Invert</span>
                                 </label>
@@ -239,27 +306,31 @@
                             <!-- Rotation Control -->
                             <div class="mb-3">
                                 <div class="text-xs text-gray-600 mb-1">Rotation</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="360" value="0" id="eyesRotate" 
-                                           class="flex-1" onchange="rotateComponent('eyes', this.value)">
-                                    <span id="eyesRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0" max="360" value="0" id="eyesRotate" 
+                                               class="flex-1" onchange="rotateComponent('eyes', this.value)">
+                                        <span id="eyesRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Scale Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Scale</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="eyesScale" 
-                                           class="flex-1" onchange="scaleComponent('eyes', this.value)">
-                                    <span id="eyesScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0.5" max="2" step="0.1" value="1" id="eyesScale" 
+                                               class="flex-1" onchange="scaleComponent('eyes', this.value)">
+                                        <span id="eyesScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Invert Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
-                                <label class="flex items-center gap-2">
+                                <label class="checkbox-container">
                                     <input type="checkbox" id="eyesInvert" onchange="invertComponent('eyes', this.checked)">
                                     <span class="text-xs text-gray-600">Invert</span>
                                 </label>
@@ -293,27 +364,31 @@
                             <!-- Rotation Control -->
                             <div class="mb-3">
                                 <div class="text-xs text-gray-600 mb-1">Rotation</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="360" value="0" id="mouthRotate" 
-                                           class="flex-1" onchange="rotateComponent('mouth', this.value)">
-                                    <span id="mouthRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0" max="360" value="0" id="mouthRotate" 
+                                               class="flex-1" onchange="rotateComponent('mouth', this.value)">
+                                        <span id="mouthRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Scale Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Scale</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="mouthScale" 
-                                           class="flex-1" onchange="scaleComponent('mouth', this.value)">
-                                    <span id="mouthScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0.5" max="2" step="0.1" value="1" id="mouthScale" 
+                                               class="flex-1" onchange="scaleComponent('mouth', this.value)">
+                                        <span id="mouthScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Invert Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
-                                <label class="flex items-center gap-2">
+                                <label class="checkbox-container">
                                     <input type="checkbox" id="mouthInvert" onchange="invertComponent('mouth', this.checked)">
                                     <span class="text-xs text-gray-600">Invert</span>
                                 </label>
@@ -347,27 +422,31 @@
                             <!-- Rotation Control -->
                             <div class="mb-3">
                                 <div class="text-xs text-gray-600 mb-1">Rotation</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0" max="360" value="0" id="accessoryRotate" 
-                                           class="flex-1" onchange="rotateComponent('accessory', this.value)">
-                                    <span id="accessoryRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0" max="360" value="0" id="accessoryRotate" 
+                                               class="flex-1" onchange="rotateComponent('accessory', this.value)">
+                                        <span id="accessoryRotateValue" class="text-xs text-gray-600 w-8">0°</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Scale Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Scale</div>
-                                <div class="flex items-center gap-2">
-                                    <input type="range" min="0.5" max="2" step="0.1" value="1" id="accessoryScale" 
-                                           class="flex-1" onchange="scaleComponent('accessory', this.value)">
-                                    <span id="accessoryScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                <div class="slider-container">
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" min="0.5" max="2" step="0.1" value="1" id="accessoryScale" 
+                                               class="flex-1" onchange="scaleComponent('accessory', this.value)">
+                                        <span id="accessoryScaleValue" class="text-xs text-gray-600 w-8">1x</span>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Invert Control -->
                             <div class="mb-2">
                                 <div class="text-xs text-gray-600 mb-1">Invert Colors</div>
-                                <label class="flex items-center gap-2">
+                                <label class="checkbox-container">
                                     <input type="checkbox" id="accessoryInvert" onchange="invertComponent('accessory', this.checked)">
                                     <span class="text-xs text-gray-600">Invert</span>
                                 </label>
@@ -489,7 +568,9 @@
                 borderClass = 'border-green-500';
             }
             
-            button.className = `component-thumbnail flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-gray-400 ${borderClass}`;
+            // Use unique class for mouth thumbnails
+            const thumbnailClass = category === 'mouth' ? 'mouth-thumbnail' : 'component-thumbnail';
+            button.className = `${thumbnailClass} flex-shrink-0 w-16 h-16 border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-gray-400 ${borderClass}`;
 
             if (id === 0) {
                 button.innerHTML = '<span class="text-gray-400 text-lg flex items-center justify-center h-full">∅</span>';
