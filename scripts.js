@@ -139,15 +139,31 @@
 
         // Confirmation Modal
         function showConfirmation(title, message, onConfirm, onCancel = null) {
+            const confirmFunction = `confirmAction_${Date.now()}`;
+            const cancelFunction = onCancel ? `cancelAction_${Date.now()}` : null;
+            
+            // Store functions globally so they can be called from onclick
+            window[confirmFunction] = function() {
+                onConfirm();
+                hideModal();
+            };
+            
+            if (onCancel) {
+                window[cancelFunction] = function() {
+                    onCancel();
+                    hideModal();
+                };
+            }
+            
             const actions = [
                 {
                     text: 'Cancel',
-                    action: onCancel ? `(${onCancel})(); hideModal();` : 'hideModal()',
+                    action: cancelFunction ? `${cancelFunction}()` : 'hideModal()',
                     primary: false
                 },
                 {
                     text: 'Confirm',
-                    action: `(${onConfirm})(); hideModal();`,
+                    action: `${confirmFunction}()`,
                     primary: true
                 }
             ];
@@ -416,7 +432,7 @@
             showConfirmation(
                 'Delete Character',
                 `Are you sure you want to delete the character in slot ${slotIndex + 1}? This action cannot be undone.`,
-                () => {
+                function() {
                     state.savedCharacters[slotIndex] = null;
                     saveCharactersToStorage();
                     updateSavedCharactersDisplay();
@@ -714,7 +730,7 @@
             showConfirmation(
                 'Reset Character',
                 'Reset all changes and start over? This will clear your current character but won\'t affect saved characters.',
-                () => {
+                function() {
                     // Reset to initial state with body-1
                     state.selectedComponents = {
                         body: {
