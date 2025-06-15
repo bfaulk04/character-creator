@@ -106,7 +106,6 @@
             background-color: #dbeafe;
         }
         /* gnarly overrides */
-        .bg-gray-100.border-2.border-gray-300.rounded-lg.p-3.shadow-lg.w-64 {
+        .bg-gray-100.border-gray-300 {
             --tw-bg-opacity: 0.8;
-            background-color: rgb(255 255 255 / var(--tw-bg-opacity, 0.8));
         }
