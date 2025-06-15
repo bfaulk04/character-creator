@@ -10,9 +10,16 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="m-0 p-0 bg-gray-100">
-    <!-- Test message to confirm page loads -->
-    <div id="loading" class="fixed top-4 right-4 bg-blue-500 text-white p-2 rounded">
-        Loading Character Creator...
+    <!-- Notification System -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+        <!-- Notifications will be added here dynamically -->
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div id="modalContent" class="bg-white rounded-lg border-2 border-gray-300 p-6 max-w-md w-full mx-4 shadow-lg">
+            <!-- Modal content will be inserted here -->
+        </div>
     </div>
 
     <div class="flex h-screen bg-gray-100 p-4">
