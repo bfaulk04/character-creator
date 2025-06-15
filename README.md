@@ -30,13 +30,12 @@ This character creator is built with simple web technologies that work in any br
 ### The Magic Behind the Scenes
 
 **Layered Images**: Each character is made of 5 layers that stack like pancakes:
-—TOP—
-- Layer 5: Body accessories (like ties)
-- Layer 4: Head accessories (like hats)
+
+- Layer 5: Accessories (like ties) —TOP—
+- Layer 4: Head items (like hats)
 - Layer 3: Eyes
 - Layer 2: Mouth
-- Layer 1: Body
-—BOTTOM—
+- Layer 1: Body —BOTTOM—
 
 ## 📁 Project Structure
 
