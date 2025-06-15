@@ -534,7 +534,7 @@
                 accessory: null
             },
             positions: {
-                body: { x: -0.5, y: 0 },
+                body: { x: -1, y: 0 },
                 mouth: { x: 0, y: 4 },
                 eyes: { x: 0, y: -4 },
                 head: { x: 0, y: -16 },
@@ -1105,7 +1105,7 @@
             
             // Reset positions
             state.positions = {
-                body: { x: -0.5, y: 0 },
+                body: { x: -1, y: 0 },
                 mouth: { x: 0, y: 4 },
                 eyes: { x: 0, y: -4 },
                 head: { x: 0, y: -16 },
@@ -1134,6 +1134,12 @@
             updateDisplay();
             updateExportButton();
             populateSelectors();
+        }
+
+        // Change background color
+        function changeBackgroundColor(color) {
+            state.backgroundColor = color;
+            document.getElementById('characterCanvas').style.backgroundColor = color;
         }
 
         // Continuous movement state
