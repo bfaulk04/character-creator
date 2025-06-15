@@ -1,6 +1,6 @@
-# Character Creator 🎨
+# Ѕρгцηκі Character Creator 🎨
 
-A fun, interactive web app that lets you build and customize your own cartoon characters! Mix and match different body parts, accessories, and features to create unique characters.
+A fun, interactive web app that lets you build and customize your own Ѕρгцηκі characters! Mix and match different body parts, accessories, and features to create unique Ѕρгцηκі characters.
 
 ## 🌟 Try It Out
 
@@ -9,10 +9,14 @@ A fun, interactive web app that lets you build and customize your own cartoon ch
 ## 🎮 How to Use
 
 1. **Choose a Body** - Click the "Body" button to pick your character's base
-2. **Add Features** - Select eyes, mouth, head accessories, and body accessories from the right panel
+2. **Add Features** - Select Eyes, Mouth, Head, and Accessories from the right panel
 3. **Move Things Around** - Click any component thumbnail to show movement controls
-4. **Fine-tune Position** - Use the arrow buttons to nudge components 5 pixels at a time
-5. **Export Your Character** - Click "Export" to save your creation (coming soon!)
+4. **Fine-tune Position, Scale & Rotation** - Use the arrow or sliders to nudge components a few pixels at a time
+5. **Export Your Character** - Click "Export" to save your creation to PDF for printing
+6. **Saved Characters**: The app lets you store your favorite creations:
+- Layers, body styles, even backgrounds can be reloaded in a click
+- Load, Save or Delete your saved characters from the Manage menu
+- There are 8 slots available for your characters, use them wisely!
 
 ## 🛠️ How It Works
 
@@ -26,22 +30,13 @@ This character creator is built with simple web technologies that work in any br
 ### The Magic Behind the Scenes
 
 **Layered Images**: Each character is made of 5 layers that stack like pancakes:
-- Layer 0: Body (bottom)
-- Layer 1: Mouth
-- Layer 2: Eyes  
-- Layer 3: Head accessories (like hats)
-- Layer 4: Body accessories (like ties) (top)
-
-**Smart Positioning**: When you first add a component, it automatically appears in a good spot:
-- Hats appear slightly above the head
-- Eyes appear slightly above center
-- Mouths appear slightly below center
-- Accessories appear lower on the body
-
-**Visual Feedback**: The app uses colors to show you what's happening:
-- Green borders = currently selected
-- Blue borders = being moved around
-- Gray borders = available to select
+—TOP—
+- Layer 5: Body accessories (like ties)
+- Layer 4: Head accessories (like hats)
+- Layer 3: Eyes
+- Layer 2: Mouth
+- Layer 1: Body
+—BOTTOM—
 
 ## 📁 Project Structure
 
@@ -81,13 +76,13 @@ For body parts, you'll also need small preview icons in the `/assets/icon/` fold
 - **No databases** - everything stays on your device
 - **Responsive design** - works on computers and tablets
 - **Lightweight** - just HTML, CSS, and JavaScript
+- **Saved characters** - using Local Storage for up to 8 characters
 
 The app uses modern web standards but keeps things simple. No complicated frameworks or build tools required!
 
 ## 🔮 Future Features
 
-- PDF export for printing your characters
-- Save/load character designs
+- SVG-based characters (color changing)
 - More customization options
 - Animation effects
 - Share characters with friends
@@ -105,4 +100,4 @@ This project is open source and available under the MIT License. Feel free to us
 
 ---
 
-**Made with ❤️ for creative kids and adults who never grew up!**
+**Made with ❤️ for Morris, from Dad!**
