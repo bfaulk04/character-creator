@@ -37,13 +37,123 @@
             accessory: 22
         };
 
-        // Hide loading message
-        setTimeout(() => {
-            const loadingElement = document.getElementById('loading');
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
+        // Notification System
+        function showNotification(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            // Base classes for all notifications
+            let classes = 'p-4 rounded-lg border-2 shadow-lg transition-all duration-300 transform translate-x-full opacity-0 flex items-center gap-3 min-w-0';
+            
+            // Type-specific styling
+            switch(type) {
+                case 'success':
+                    classes += ' bg-green-50 border-green-200 text-green-800';
+                    break;
+                case 'error':
+                    classes += ' bg-red-50 border-red-200 text-red-800';
+                    break;
+                case 'warning':
+                    classes += ' bg-yellow-50 border-yellow-200 text-yellow-800';
+                    break;
+                default: // info
+                    classes += ' bg-blue-50 border-blue-200 text-blue-800';
             }
-        }, 1000);
+            
+            notification.className = classes;
+            
+            // Add icon based on type
+            let icon = '';
+            switch(type) {
+                case 'success': icon = '<i class="ph ph-check-circle text-green-600 flex-shrink-0"></i>'; break;
+                case 'error': icon = '<i class="ph ph-x-circle text-red-600 flex-shrink-0"></i>'; break;
+                case 'warning': icon = '<i class="ph ph-warning-circle text-yellow-600 flex-shrink-0"></i>'; break;
+                default: icon = '<i class="ph ph-info text-blue-600 flex-shrink-0"></i>';
+            }
+            
+            notification.innerHTML = `
+                ${icon}
+                <span class="flex-1 text-sm font-medium">${message}</span>
+                <button onclick="this.parentElement.remove()" class="flex-shrink-0 p-1 hover:bg-black hover:bg-opacity-10 rounded">
+                    <i class="ph ph-x text-xs"></i>
+                </button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+            
+            // Auto-remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.classList.add('translate-x-full', 'opacity-0');
+                        setTimeout(() => {
+                            if (notification.parentElement) {
+                                notification.remove();
+                            }
+                        }, 300);
+                    }
+                }, duration);
+            }
+        }
+
+        // Modal System
+        function showModal(title, content, actions = []) {
+            const overlay = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('modalContent');
+            
+            let actionsHtml = '';
+            if (actions.length > 0) {
+                actionsHtml = '<div class="flex gap-2 mt-6 justify-end">';
+                actions.forEach(action => {
+                    const buttonClass = action.primary 
+                        ? 'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium'
+                        : 'px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium';
+                    actionsHtml += `<button class="${buttonClass}" onclick="${action.action}">${action.text}</button>`;
+                });
+                actionsHtml += '</div>';
+            }
+            
+            modalContent.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">${title}</h2>
+                    <button onclick="hideModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <div class="text-gray-600 mb-4">${content}</div>
+                ${actionsHtml}
+            `;
+            
+            overlay.classList.remove('hidden');
+        }
+
+        function hideModal() {
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.add('hidden');
+        }
+
+        // Confirmation Modal
+        function showConfirmation(title, message, onConfirm, onCancel = null) {
+            const actions = [
+                {
+                    text: 'Cancel',
+                    action: onCancel ? `(${onCancel})(); hideModal();` : 'hideModal()',
+                    primary: false
+                },
+                {
+                    text: 'Confirm',
+                    action: `(${onConfirm})(); hideModal();`,
+                    primary: true
+                }
+            ];
+            
+            showModal(title, message, actions);
+        }
 
         // Generate component thumbnail
         function createThumbnail(category, id, isSelected = false) {
@@ -229,6 +339,7 @@
                 localStorage.setItem('characterCreatorSaves', JSON.stringify(state.savedCharacters));
             } catch (e) {
                 console.warn('Could not save to localStorage:', e);
+                showNotification('Could not save to storage', 'warning');
             }
         }
 
@@ -243,52 +354,75 @@
                 }
             } catch (e) {
                 console.warn('Could not load from localStorage:', e);
+                showNotification('Could not load saved characters', 'warning');
                 state.savedCharacters = Array(8).fill(null);
             }
         }
 
         // Save current character to slot
         async function saveCharacter(slotIndex) {
-            const characterData = {
-                selectedComponents: { ...state.selectedComponents },
-                positions: { ...state.positions },
-                transforms: { ...state.transforms },
-                backgroundColor: state.backgroundColor,
-                savedAt: new Date().toISOString(),
-                thumbnail: await generateThumbnail()
-            };
-            
-            state.savedCharacters[slotIndex] = characterData;
-            saveCharactersToStorage();
-            updateSavedCharactersDisplay();
+            try {
+                const characterData = {
+                    selectedComponents: { ...state.selectedComponents },
+                    positions: { ...state.positions },
+                    transforms: { ...state.transforms },
+                    backgroundColor: state.backgroundColor,
+                    savedAt: new Date().toISOString(),
+                    thumbnail: await generateThumbnail()
+                };
+                
+                state.savedCharacters[slotIndex] = characterData;
+                saveCharactersToStorage();
+                updateSavedCharactersDisplay();
+                showNotification(`Character saved to slot ${slotIndex + 1}!`, 'success');
+            } catch (error) {
+                console.error('Save failed:', error);
+                showNotification('Failed to save character', 'error');
+            }
         }
 
         // Load character from slot
         function loadCharacter(slotIndex) {
             const characterData = state.savedCharacters[slotIndex];
-            if (!characterData) return;
-            
-            state.selectedComponents = { ...characterData.selectedComponents };
-            state.positions = { ...characterData.positions };
-            state.transforms = { ...characterData.transforms };
-            
-            // Load background color if saved
-            if (characterData.backgroundColor) {
-                state.backgroundColor = characterData.backgroundColor;
-                document.getElementById('characterCanvas').style.backgroundColor = characterData.backgroundColor;
-                document.getElementById('backgroundColorInput').value = characterData.backgroundColor;
+            if (!characterData) {
+                showNotification('No character found in this slot', 'warning');
+                return;
             }
             
-            updateDisplay();
-            updateExportButton();
-            populateSelectors();
+            try {
+                state.selectedComponents = { ...characterData.selectedComponents };
+                state.positions = { ...characterData.positions };
+                state.transforms = { ...characterData.transforms };
+                
+                // Load background color if saved
+                if (characterData.backgroundColor) {
+                    state.backgroundColor = characterData.backgroundColor;
+                    document.getElementById('characterCanvas').style.backgroundColor = characterData.backgroundColor;
+                    document.getElementById('backgroundColorInput').value = characterData.backgroundColor;
+                }
+                
+                updateDisplay();
+                updateExportButton();
+                populateSelectors();
+                showNotification(`Character loaded from slot ${slotIndex + 1}!`, 'success');
+            } catch (error) {
+                console.error('Load failed:', error);
+                showNotification('Failed to load character', 'error');
+            }
         }
 
         // Delete character from slot
         function deleteCharacter(slotIndex) {
-            state.savedCharacters[slotIndex] = null;
-            saveCharactersToStorage();
-            updateSavedCharactersDisplay();
+            showConfirmation(
+                'Delete Character',
+                `Are you sure you want to delete the character in slot ${slotIndex + 1}? This action cannot be undone.`,
+                () => {
+                    state.savedCharacters[slotIndex] = null;
+                    saveCharactersToStorage();
+                    updateSavedCharactersDisplay();
+                    showNotification(`Character deleted from slot ${slotIndex + 1}`, 'success');
+                }
+            );
         }
 
         // Generate thumbnail for saved character using actual character rendering
@@ -436,11 +570,13 @@
         // Export to PDF function
         const exportToPDF = async () => {
             if (!state.selectedComponents.body) {
-                alert('Please select a body component before exporting');
+                showNotification('Please select a body component before exporting', 'warning');
                 return;
             }
             
             try {
+                showNotification('Generating PDF...', 'info', 0); // No auto-dismiss
+                
                 // Get the character canvas
                 const canvas = document.getElementById('characterCanvas');
                 const originalBg = canvas.style.backgroundColor;
@@ -559,57 +695,73 @@
                 // Restore original background
                 canvas.style.backgroundColor = originalBg;
                 
+                // Clear the generating notification and show success
+                const container = document.getElementById('notificationContainer');
+                container.innerHTML = '';
+                showNotification('PDF exported successfully!', 'success');
+                
             } catch (error) {
                 console.error('Export failed:', error);
-                alert('Export failed. Please try again.');
+                // Clear any existing notifications
+                const container = document.getElementById('notificationContainer');
+                container.innerHTML = '';
+                showNotification('Export failed. Please try again.', 'error');
             }
         };
 
         // Reset all components and settings
         function resetCharacter() {
-            // Reset to initial state with body-1
-            state.selectedComponents = {
-                body: {
-                    id: 1,
-                    path: './assets/body/body-1.png'
-                },
-                mouth: null,
-                eyes: null,
-                head: null,
-                accessory: null
-            };
-            
-            // Reset positions
-            state.positions = {
-                body: { x: -1, y: 0 },
-                mouth: { x: 0, y: 4 },
-                eyes: { x: 0, y: -4 },
-                head: { x: 0, y: -16 },
-                accessory: { x: 0, y: 16 }
-            };
-            
-            // Reset transforms
-            state.transforms = {
-                body: { rotate: 0, scale: 1, invert: false },
-                mouth: { rotate: 0, scale: 1, invert: false },
-                eyes: { rotate: 0, scale: 1, invert: false },
-                head: { rotate: 0, scale: 1, invert: false },
-                accessory: { rotate: 0, scale: 1, invert: false }
-            };
-            
-            // Reset background
-            state.backgroundColor = '#ffffff';
-            document.getElementById('characterCanvas').style.backgroundColor = '#ffffff';
-            document.getElementById('backgroundColorInput').value = '#ffffff';
-            
-            // Reset UI
-            state.selectedForMoving = null;
-            hideMovementOverlay();
-            
-            // Update display
-            updateDisplay();
-            updateExportButton();
-            populateSelectors();
+            showConfirmation(
+                'Reset Character',
+                'Reset all changes and start over? This will clear your current character but won\'t affect saved characters.',
+                () => {
+                    // Reset to initial state with body-1
+                    state.selectedComponents = {
+                        body: {
+                            id: 1,
+                            path: './assets/body/body-1.png'
+                        },
+                        mouth: null,
+                        eyes: null,
+                        head: null,
+                        accessory: null
+                    };
+                    
+                    // Reset positions
+                    state.positions = {
+                        body: { x: -1, y: 0 },
+                        mouth: { x: 0, y: 4 },
+                        eyes: { x: 0, y: -4 },
+                        head: { x: 0, y: -16 },
+                        accessory: { x: 0, y: 16 }
+                    };
+                    
+                    // Reset transforms
+                    state.transforms = {
+                        body: { rotate: 0, scale: 1, invert: false },
+                        mouth: { rotate: 0, scale: 1, invert: false },
+                        eyes: { rotate: 0, scale: 1, invert: false },
+                        head: { rotate: 0, scale: 1, invert: false },
+                        accessory: { rotate: 0, scale: 1, invert: false }
+                    };
+                    
+                    // Reset background
+                    state.backgroundColor = '#ffffff';
+                    document.getElementById('characterCanvas').style.backgroundColor = '#ffffff';
+                    document.getElementById('backgroundColorInput').value = '#ffffff';
+                    
+                    // Reset UI
+                    state.selectedForMoving = null;
+                    hideMovementOverlay();
+                    
+                    // Update display
+                    updateDisplay();
+                    updateExportButton();
+                    populateSelectors();
+                    
+                    showNotification('Character reset successfully!', 'success');
+                }
+            );
         }
 
         // Change background color
@@ -653,6 +805,8 @@
                 continuousMovement.direction = null;
             }
         }
+
+        // Rotate component
         function rotateComponent(category, degrees) {
             state.transforms[category].rotate = degrees;
             document.getElementById(category + 'RotateValue').textContent = degrees + '°';
@@ -742,6 +896,13 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking overlay
+            document.getElementById('modalOverlay').onclick = function(e) {
+                if (e.target === this) {
+                    hideModal();
+                }
+            };
+
             const backgroundBtn = document.getElementById('backgroundBtn');
             if (backgroundBtn) {
                 backgroundBtn.onclick = function() {
@@ -776,9 +937,8 @@
                     const emptySlot = state.savedCharacters.findIndex(slot => slot === null);
                     if (emptySlot !== -1) {
                         await saveCharacter(emptySlot);
-                        alert(`Character saved to slot ${emptySlot + 1}!`);
                     } else {
-                        alert('All slots full! Use the hover controls on saved characters to overwrite a slot.');
+                        showNotification('All slots full! Use the hover controls on saved characters to overwrite a slot.', 'warning');
                     }
                 };
             }
@@ -807,9 +967,7 @@
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) {
                 resetBtn.onclick = function() {
-                    if (confirm('Reset all changes and start over?')) {
-                        resetCharacter();
-                    }
+                    resetCharacter();
                 };
             }
 
