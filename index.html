@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Character Creator</title>
+    <title>Ѕρгцηκі Character Creator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -74,6 +74,25 @@
                             <button id="closeBackgroundPicker" class="p-1 text-gray-500 hover:text-gray-700">×</button>
                         </div>
                         <input type="color" id="backgroundColorInput" value="#ffffff" class="w-32 h-10 rounded border mb-4">
+                        
+                        <!-- Preview Scale -->
+                        <div class="mb-4">
+                            <h3 class="font-medium text-gray-700 mb-2">Preview Scale</h3>
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="previewScale" value="1" checked class="text-blue-600">
+                                    <span class="text-sm text-gray-700">1x</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="previewScale" value="1.5" class="text-blue-600">
+                                    <span class="text-sm text-gray-700">1.5x</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="previewScale" value="2" class="text-blue-600">
+                                    <span class="text-sm text-gray-700">2x</span>
+                                </label>
+                            </div>
+                        </div>
                         
                         <!-- Saved Characters -->
                         <div class="mb-4 relative">
