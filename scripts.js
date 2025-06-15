@@ -25,7 +25,8 @@
             },
             selectedForMoving: null,
             backgroundColor: '#ffffff',
-            savedCharacters: []
+            savedCharacters: [],
+            previewScale: 1
         };
 
         // Component counts
@@ -306,10 +307,17 @@
         // Update character display
         function updateDisplay() {
             const placeholder = document.getElementById('placeholder');
+            const characterPreview = document.getElementById('characterPreview');
             const hasBody = state.selectedComponents.body !== null;
             
             if (placeholder) {
                 placeholder.style.display = hasBody ? 'none' : 'block';
+            }
+
+            // Apply preview scale to the entire character preview container
+            if (characterPreview) {
+                characterPreview.style.transform = `scale(${state.previewScale})`;
+                characterPreview.style.transformOrigin = 'center center';
             }
 
             // Update each layer
@@ -786,6 +794,12 @@
             document.getElementById('characterCanvas').style.backgroundColor = color;
         }
 
+        // Change preview scale
+        function changePreviewScale(scale) {
+            state.previewScale = parseFloat(scale);
+            updateDisplay();
+        }
+
         // Continuous movement state
         let continuousMovement = {
             interval: null,
@@ -945,6 +959,16 @@
                     changeBackgroundColor(this.value);
                 };
             }
+
+            // Preview scale radio buttons
+            const previewScaleRadios = document.querySelectorAll('input[name="previewScale"]');
+            previewScaleRadios.forEach(radio => {
+                radio.onchange = function() {
+                    if (this.checked) {
+                        changePreviewScale(this.value);
+                    }
+                };
+            });
 
             const saveBtn = document.getElementById('saveBtn');
             if (saveBtn) {
